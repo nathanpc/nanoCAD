@@ -17,8 +17,20 @@
 #define ARGUMENT_MAX_SIZE       30  // no dynamic-sized string and arrays for
 #define ARGUMENT_ARRAY_MAX_SIZE 4   // you.
 
-// Function prototypes.
-int parse_line(const char *line, char *command, char **arguments);
+// Coordinate structure.
+typedef struct {
+	long x;
+	long y;
+} coord;
+
+// Object structure.
+typedef struct {
+	uint8_t type;
+	coord coords[];
+} object;
+
+// Exported functions.
+bool parse_command(const char *line);
 
 #endif
 

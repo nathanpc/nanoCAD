@@ -14,6 +14,28 @@
 #define PARSING_COMMAND   0
 #define PARSING_ARGUMENTS 1
 
+// Function prototypes.
+int parse_line(const char *line, char *command, char **arguments);
+
+
+bool parse_command(const char *line) {
+	char command[COMMAND_MAX_SIZE];
+	char *args[ARGUMENT_ARRAY_MAX_SIZE];
+	int _argc = -1;
+
+	printf("> %s\n", line);
+	_argc = parse_line(line, command, args);
+
+	if (_argc >= 0) {
+		printf("Command: %s - Arg. Count: %d\n", command, _argc);
+		for (int i = 0; i < _argc; i++) {
+			printf("Argument %d: %s\n", i, args[i]);
+		}
+	}
+
+	return false;
+}
+
 /**
  * Parses a command line.
  *
