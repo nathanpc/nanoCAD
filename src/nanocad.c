@@ -14,30 +14,114 @@
 #define PARSING_COMMAND   0
 #define PARSING_ARGUMENTS 1
 
+// Stored structures.
+object_container objects;
+
+// Command type definitions.
+#define VALID_OBJECTS_SIZE 3
+char valid_objects[VALID_OBJECTS_SIZE][COMMAND_MAX_SIZE] = { "line", "rect", "circle" };
+
 // Function prototypes.
 int parse_line(const char *line, char *command, char **arguments);
+int is_obj_command(const char *command);
 
 
+/**
+ * Initializes the engine.
+ */
+void nanocad_init() {
+	objects.count = 0;
+}
+
+/**
+ * Creates a object in the object array.
+ *
+ * @param type Object type.
+ * @param argc Number of arguments passed by the command.
+ * @param argv Aguments passed by the command.
+ */
+void create_object(int type, char argc, char **argv) {
+	object_t obj;
+	obj.type = (uint8_t)type;
+	obj.coord = NULL;
+
+	objects.list = realloc(objects.list,
+			sizeof(object_t) * (objects.count + 1));
+	objects.list[objects.count] = obj;
+	objects.count++;
+}
+
+/**
+ * Parses a command and executes it.
+ *
+ * @param  line A command line without the newline character at the end.
+ * @return      TRUE if the parsing went fine.
+ */
 bool parse_command(const char *line) {
+	int argc;
 	char command[COMMAND_MAX_SIZE];
-	char *args[ARGUMENT_ARRAY_MAX_SIZE];
-	int _argc = -1;
+	char *argv[ARGUMENT_ARRAY_MAX_SIZE];
 
+#ifdef DEBUG
 	printf("> %s\n", line);
-	_argc = parse_line(line, command, args);
+#endif
 
-	if (_argc >= 0) {
-		printf("Command: %s - Arg. Count: %d\n", command, _argc);
-		for (int i = 0; i < _argc; i++) {
-			printf("Argument %d: %s\n", i, args[i]);
+	if ((argc = parse_line(line, command, argv)) >= 0) {
+		// Check which type of command this is.
+		int type = -1;
+		if ((type = is_obj_command(command)) > 0) {
+			// Command will generate a object.
+			create_object(type, argc, argv);
+#ifdef DEBUG
+			print_object_info(objects.list[objects.count - 1]);
+#endif
+		} else {
+			// Not a known command.
+			printf("Unknown command.\n");
+			return false;
 		}
+#ifdef DEBUG
+		printf("Command: %s - Arg. Count: %d\n", command, argc);
+#endif
+		for (int i = 0; i < argc; i++) {
+#ifdef DEBUG
+			printf("Argument %d: %s\n", i, argv[i]);
+#endif
+		}
+
+		return true;
 	}
 
 	return false;
 }
 
 /**
- * Parses a command line.
+ * Checks if a command is of object type and returns the correct type for it.
+ *
+ * @param  command Command string to be checked.
+ * @return         Object type if valid, otherwise -1.
+ */
+int is_obj_command(const char *command) {
+	for (uint8_t i = 0; i < VALID_OBJECTS_SIZE; i++) {
+		if (strcmp(command, valid_objects[i]) == 0) {
+			return i + 1;
+		}
+	}
+
+	return -1;
+}
+
+/**
+ * Prints some debug information about a given object.
+ *
+ * @param object Object that you want to get information from.
+ */
+void print_object_info(const object_t object) {
+	printf("Object Type: %d - %s\n", object.type, valid_objects[object.type - 1]);
+}
+
+/**
+ * Parses a command line and separates each part.
  *
  * @param  line      The command line without the newline character at the end.
  * @param  command   Pointer to a string that will contain the command after
@@ -124,5 +208,15 @@ int parse_line(const char *line, char *command, char **arguments) {
 	}
 
 	return argc;
+}
+
+/**
+ * Gets a object from the objects array.
+ *
+ * @param  i Index of the object to be fetched.
+ * @return   The requested object.
+ */
+object_t get_object(const size_t i) {
+	return objects.list[i];
 }
 

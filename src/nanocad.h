@@ -10,6 +10,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 // Constant definitions.
 #define ENGINE_VERSION   "0.1a"
@@ -17,20 +18,37 @@
 #define ARGUMENT_MAX_SIZE       30  // no dynamic-sized string and arrays for
 #define ARGUMENT_ARRAY_MAX_SIZE 4   // you.
 
+// Object type definitions.
+#define TYPE_LINE   1
+#define TYPE_RECT   2
+#define TYPE_CIRCLE 3
+
 // Coordinate structure.
 typedef struct {
 	long x;
 	long y;
-} coord;
+} coord_t;
 
 // Object structure.
 typedef struct {
 	uint8_t type;
-	coord coords[];
-} object;
+	coord_t *coord;
+} object_t;
 
-// Exported functions.
+typedef struct {
+	size_t count;
+	object_t *list;
+} object_container;
+
+// General functions.
+void nanocad_init();
 bool parse_command(const char *line);
+
+// Object manipulation.
+object_t get_object(const size_t i);
+
+// Debug functions.
+void print_object_info(const object_t object);
 
 #endif
 

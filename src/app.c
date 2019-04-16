@@ -24,6 +24,7 @@ void print_welcome();
 int main(int argc, char **argv) {
 	// Show a little version message.
 	print_welcome();
+	nanocad_init();
 
 	char *line = "line x1.5;y30cm, ly1.2m";
 	if (!parse_command(line)) {
