@@ -8,7 +8,17 @@
 #ifndef _NANOCAD_H
 #define _NANOCAD_H
 
-// TODO: Put stuff here.
+#include <stdbool.h>
+#include <stdint.h>
+
+// Constant definitions.
+#define ENGINE_VERSION   "0.1a"
+#define COMMAND_MAX_SIZE        15  // Yes, I'm lazy. Until further notice,
+#define ARGUMENT_MAX_SIZE       30  // no dynamic-sized string and arrays for
+#define ARGUMENT_ARRAY_MAX_SIZE 4   // you.
+
+// Function prototypes.
+int parse_line(const char *line, char *command, char **arguments);
 
 #endif
 

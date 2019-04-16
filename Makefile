@@ -13,6 +13,7 @@ $(PROJECT): $(OBJECTS)
 
 debug: CXXFLAGS += -g3 -DDEBUG
 debug: $(PROJECT)
+	./$(PROJECT)
 
 %.o: %.c $(HEADERS)
 	$(CC) $(CFLAGS) -c $< -o $@
