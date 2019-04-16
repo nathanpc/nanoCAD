@@ -32,6 +32,7 @@ typedef struct {
 // Object structure.
 typedef struct {
 	uint8_t type;
+	uint8_t coord_count;
 	coord_t *coord;
 } object_t;
 

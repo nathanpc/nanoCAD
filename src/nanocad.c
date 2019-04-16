@@ -41,10 +41,23 @@ void nanocad_init() {
  * @param argv Aguments passed by the command.
  */
 void create_object(int type, char argc, char **argv) {
+	// Create a new object.
 	object_t obj;
 	obj.type = (uint8_t)type;
-	obj.coord = NULL;
 
+	// Allocate the correct amount of memory for each type of object.
+	switch (type) {
+		case TYPE_LINE:
+			obj.coord_count = 2;
+			obj.coord = (coord_t *)malloc(sizeof(coord_t) * 2);
+			obj.coord[0].x = 12;
+			obj.coord[0].y = 34;
+			obj.coord[1].x = 45;
+			obj.coord[1].y = 67;
+			break;
+	}
+
+	// Dynamically add the new object to the array.
 	objects.list = realloc(objects.list,
 			sizeof(object_t) * (objects.count + 1));
 	objects.list[objects.count] = obj;
@@ -82,12 +95,10 @@ bool parse_command(const char *line) {
 		}
 #ifdef DEBUG
 		printf("Command: %s - Arg. Count: %d\n", command, argc);
-#endif
 		for (int i = 0; i < argc; i++) {
-#ifdef DEBUG
 			printf("Argument %d: %s\n", i, argv[i]);
-#endif
 		}
+#endif
 
 		return true;
 	}
@@ -118,6 +129,11 @@ int is_obj_command(const char *command) {
  */
 void print_object_info(const object_t object) {
 	printf("Object Type: %d - %s\n", object.type, valid_objects[object.type - 1]);
+	printf("Coordinates (%d total):\n", object.coord_count);
+
+	for (uint8_t i = 0; i < object.coord_count; i++) {
+		printf("    %d. (%ld, %ld)\n", i, object.coord[i].x, object.coord[i].y);
+	}
 }
 
 /**
