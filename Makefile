@@ -9,9 +9,9 @@ OBJECTS = src/app.o src/nanocad.o
 all: $(PROJECT)
 
 $(PROJECT): $(OBJECTS)
-	$(CC) $(CXXFLAGS) $(OBJECTS) -o $@ $(LIBS)
+	$(CC) $(CFLAGS) $(OBJECTS) -o $@ $(LIBS)
 
-debug: CXXFLAGS += -g3 -DDEBUG
+debug: CFLAGS += -g3 -DDEBUG
 debug: $(PROJECT)
 	./$(PROJECT)
 
