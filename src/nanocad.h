@@ -13,7 +13,7 @@
 #include <stdlib.h>
 
 // Constant definitions.
-#define ENGINE_VERSION   "0.1a"
+#define ENGINE_VERSION          "0.1a"
 #define COMMAND_MAX_SIZE        15  // Yes, I'm lazy. Until further notice,
 #define ARGUMENT_MAX_SIZE       30  // no dynamic-sized string and arrays for
 #define ARGUMENT_ARRAY_MAX_SIZE 4   // you.

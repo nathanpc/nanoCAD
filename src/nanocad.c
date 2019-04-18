@@ -16,10 +16,14 @@
 #define PARSING_ARGUMENTS 2
 #define PARSING_COORDX    3
 #define PARSING_COORDY    4
-#define PARSING_WIDTH     5
-#define PARSING_HEIGHT    6
-#define PARSING_NUMBER    7
-#define PARSING_UNIT      8
+#define PARSING_WIDTH     6
+#define PARSING_HEIGHT    7
+#define PARSING_NUMBER    8
+#define PARSING_UNIT      9
+
+// Operation type definitions.
+#define OPERATION_WIDTH  'w'
+#define OPERATION_HEIGHT 'h'
 
 // Stored structures.
 object_container objects;
@@ -42,6 +46,24 @@ void nanocad_init() {
 	objects.count = 0;
 }
 
+void calc_coordinate(const char oper, const coord_t base, coord_t *coord) {
+	switch (oper) {
+		case OPERATION_WIDTH:
+			// Using coord->x to store the width already.
+			coord->x += base.x;
+			coord->y = base.y;
+			break;
+		case OPERATION_HEIGHT:
+			// Using coord->y to store the height already.
+			coord->x = base.x;
+			coord->y += base.y;
+			break;
+		default:
+			printf("Invalid coordinate operation: %c.\n", oper);
+			exit(1);
+	}
+}
+
 /**
  * Parses a coordinate argument into a internal coordinate structure.
  *
@@ -53,10 +75,13 @@ void nanocad_init() {
 void parse_coordinates(coord_t *coord, const char *arg, const coord_t *base) {
 	uint8_t stage = PARSING_START;
 	uint8_t cur_pos = 0;
+	char operation = '\0';
 	char coord_x[ARGUMENT_MAX_SIZE];
 	char coord_y[ARGUMENT_MAX_SIZE];
-	coord_x[0] = '\0';
-	coord_y[0] = '\0';
+	coord_x[0] = '0';
+	coord_y[0] = '0';
+	coord_x[1] = '\0';
+	coord_y[1] = '\0';
 
 	// Iterate over the argument string until we hit the NULL terminator.
 	while (*arg != '\0') {
@@ -68,6 +93,16 @@ void parse_coordinates(coord_t *coord, const char *arg, const coord_t *base) {
 				if (c == 'x') {
 					cur_pos = 0;
 					stage = PARSING_COORDX;
+				} else if ((c == 'w') || (c == 'h')) {
+					// TODO: Make sure we can parse something like w10cm;h25cm.
+					cur_pos = 0;
+					operation = c;
+
+					if (c == 'w') {
+						stage = PARSING_WIDTH;
+					} else if (c == 'h') {
+						stage = PARSING_HEIGHT;
+					}
 				} else {
 					printf("Unknown first coordinate letter: %c.\n", c);
 					exit(1);
@@ -95,11 +130,25 @@ void parse_coordinates(coord_t *coord, const char *arg, const coord_t *base) {
 				coord_y[cur_pos++] = c;
 				coord_y[cur_pos] = '\0';
 				break;
+			case PARSING_WIDTH:
+				coord_x[cur_pos++] = c;
+				coord_x[cur_pos] = '\0';
+				break;
+			case PARSING_HEIGHT:
+				coord_y[cur_pos++] = c;
+				coord_y[cur_pos] = '\0';
+				break;
 		}
 	}
 
+	// Convert coordinates.
 	coord->x = to_base_unit(coord_x);
 	coord->y = to_base_unit(coord_y);
+
+	// Looks like we'll need to calculate some stuff.
+	if ((base != NULL) && (operation != '\0')) {
+		calc_coordinate(operation, *base, coord);
+	}
 }
 
 /**
@@ -120,8 +169,7 @@ void create_object(int type, char argc, char **argv) {
 			obj.coord_count = 2;
 			obj.coord = (coord_t *)malloc(sizeof(coord_t) * 2);
 			parse_coordinates(&obj.coord[0], argv[0], NULL);
-			obj.coord[1].x = 45;
-			obj.coord[1].y = 67;
+			parse_coordinates(&obj.coord[1], argv[1], &obj.coord[0]);
 			break;
 	}
 

@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
 	print_welcome();
 	nanocad_init();
 
-	char *line = "line x1.5m;y30cm, ly1.2m";
+	char *line = "line x1.5m;y30cm, h1.2m";
 	if (!parse_command(line)) {
 		printf("Failed to parse the command.\n");
 	}
