@@ -11,8 +11,15 @@
 #include <string.h>
 
 // Line parsing stage definitions.
-#define PARSING_COMMAND   0
-#define PARSING_ARGUMENTS 1
+#define PARSING_START     0
+#define PARSING_COMMAND   1
+#define PARSING_ARGUMENTS 2
+#define PARSING_COORDX    3
+#define PARSING_COORDY    4
+#define PARSING_WIDTH     5
+#define PARSING_HEIGHT    6
+#define PARSING_NUMBER    7
+#define PARSING_UNIT      8
 
 // Stored structures.
 object_container objects;
@@ -24,13 +31,75 @@ char valid_objects[VALID_OBJECTS_SIZE][COMMAND_MAX_SIZE] = { "line", "rect", "ci
 // Function prototypes.
 int parse_line(const char *line, char *command, char **arguments);
 int is_obj_command(const char *command);
-
+long to_base_unit(const char *str);
+void create_object(int type, char argc, char **argv);
+void nanocad_init();
 
 /**
  * Initializes the engine.
  */
 void nanocad_init() {
 	objects.count = 0;
+}
+
+/**
+ * Parses a coordinate argument into a internal coordinate structure.
+ *
+ * @param coord Pointer to the output of the function.
+ * @param arg   The argument raw string to be parsed.
+ * @param base  A base coordinate for "length calculations", can be NULL if
+ *              there isn't one.
+ */
+void parse_coordinates(coord_t *coord, const char *arg, const coord_t *base) {
+	uint8_t stage = PARSING_START;
+	uint8_t cur_pos = 0;
+	char coord_x[ARGUMENT_MAX_SIZE];
+	char coord_y[ARGUMENT_MAX_SIZE];
+	coord_x[0] = '\0';
+	coord_y[0] = '\0';
+
+	// Iterate over the argument string until we hit the NULL terminator.
+	while (*arg != '\0') {
+		// Get the current character.
+		char c = *arg++;
+
+		switch (stage) {
+			case PARSING_START:
+				if (c == 'x') {
+					cur_pos = 0;
+					stage = PARSING_COORDX;
+				} else {
+					printf("Unknown first coordinate letter: %c.\n", c);
+					exit(1);
+				}
+				break;
+			case PARSING_COORDX:
+				if (c == ';') {
+					cur_pos = 0;
+					stage = PARSING_ARGUMENTS;
+				} else {
+					coord_x[cur_pos++] = c;
+					coord_x[cur_pos] = '\0';
+				}
+				break;
+			case PARSING_ARGUMENTS:
+				if (c == 'y') {
+					cur_pos = 0;
+					stage = PARSING_COORDY;
+				} else {
+					printf("Unknown next argument start for coordinate: %c.\n", c);
+					exit(1);
+				}
+				break;
+			case PARSING_COORDY:
+				coord_y[cur_pos++] = c;
+				coord_y[cur_pos] = '\0';
+				break;
+		}
+	}
+
+	coord->x = to_base_unit(coord_x);
+	coord->y = to_base_unit(coord_y);
 }
 
 /**
@@ -50,8 +119,7 @@ void create_object(int type, char argc, char **argv) {
 		case TYPE_LINE:
 			obj.coord_count = 2;
 			obj.coord = (coord_t *)malloc(sizeof(coord_t) * 2);
-			obj.coord[0].x = 12;
-			obj.coord[0].y = 34;
+			parse_coordinates(&obj.coord[0], argv[0], NULL);
 			obj.coord[1].x = 45;
 			obj.coord[1].y = 67;
 			break;
@@ -80,6 +148,12 @@ bool parse_command(const char *line) {
 #endif
 
 	if ((argc = parse_line(line, command, argv)) >= 0) {
+#ifdef DEBUG
+		printf("Command: %s - Arg. Count: %d\n", command, argc);
+		for (int i = 0; i < argc; i++) {
+			printf("Argument %d: %s\n", i, argv[i]);
+		}
+#endif
 		// Check which type of command this is.
 		int type = -1;
 		if ((type = is_obj_command(command)) > 0) {
@@ -93,17 +167,92 @@ bool parse_command(const char *line) {
 			printf("Unknown command.\n");
 			return false;
 		}
-#ifdef DEBUG
-		printf("Command: %s - Arg. Count: %d\n", command, argc);
-		for (int i = 0; i < argc; i++) {
-			printf("Argument %d: %s\n", i, argv[i]);
-		}
-#endif
 
 		return true;
 	}
 
 	return false;
+}
+
+/**
+ * Converts a raw string to a long in the base unit.
+ *
+ * @param  str Raw string in a coordinate form.
+ * @return     Number in the base unit.
+ */
+long to_base_unit(const char *str) {
+	long num = 0;
+	char unit[3];
+	char strnum[ARGUMENT_MAX_SIZE];
+	uint8_t stage = PARSING_NUMBER;
+	uint8_t cur_pos = 0;
+	unit[0] = '\0';
+
+	// Iterate over the coordinate string until we hit the NULL terminator.
+	while (*str != '\0') {
+		// Get the current character.
+		char c = *str++;
+
+		switch (stage) {
+			case PARSING_NUMBER:
+				if (((c >= 0x30) && (c <= 0x39)) || 
+						((c >= 0x2B) && (c <= 0x2E))) {
+					// Character is a number.
+					strnum[cur_pos++] = c;
+					strnum[cur_pos] = '\0';
+				} else if ((c >= 0x61) && (c <= 0x7A)) {
+					// Character is a letter.
+					cur_pos = 0;
+					stage = PARSING_UNIT;
+					unit[cur_pos++] = c;
+					unit[cur_pos] = '\0';
+				} else {
+					// Invalid character.
+					printf("Invalid character found while trying to parse a "
+							"number: %c.\n", c);
+					exit(1);
+				}
+				break;
+			case PARSING_UNIT:
+				if ((c >= 0x61) && (c <= 0x7A)) {
+					// Character is a letter.
+					unit[cur_pos++] = c;
+					unit[cur_pos] = '\0';
+				} else {
+					// Invalid character.
+					printf("Invalid character found while trying to parse a "
+							"unit: %c.\n", c);
+					exit(1);
+				}
+				break;
+		}
+	}
+
+	// Parse number from string and convert it.
+	double orig = atof(strnum);
+	if (unit[0] == '\0') {
+		// Already at the base unit.
+		num = (long)orig;
+	} else if (!strcmp(unit, "m")) {
+		// Meters.
+		num = (long)(orig * 1000);
+	} else if (!strcmp(unit, "cm")) {
+		// Centimeters.
+		num = (long)(orig * 10);
+	} else if (!strcmp(unit, "mm")) {
+		// Millimeters.
+		num = (long)orig;
+	} else {
+		// Invalid unit.
+		printf("Invalid unit: %s\n", unit);
+		exit(1);
+	}
+
+#ifdef DEBUG
+	printf("Number: %s - Unit: %s - Double: %f - Final: %ld\n", strnum, unit, orig, num);
+#endif
+
+	return num;
 }
 
 /**
@@ -201,9 +350,8 @@ int parse_line(const char *line, char *command, char **arguments) {
 					}
 
 					if ((cur_cpos + 1) < ARGUMENT_MAX_SIZE) {
-						cur_arg[cur_cpos] = c;
-						cur_arg[cur_cpos + 1] = '\0';
-						cur_cpos++;
+						cur_arg[cur_cpos++] = c;
+						cur_arg[cur_cpos] = '\0';
 					} else {
 						printf("Maximum argument character size exceeded on "
 								"argument number %d.\n", argc);
