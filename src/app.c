@@ -57,6 +57,10 @@ int main(int argc, char **argv) {
 		}
 
 #ifdef DEBUG
+		if (linenum > 1) {
+			printf("\n\n");
+		}
+
 		printf("Line %d: %s\n", linenum, line);
 #endif
 
