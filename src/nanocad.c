@@ -60,7 +60,7 @@ void calc_coordinate(const char oper, const coord_t base, coord_t *coord) {
 			break;
 		default:
 			printf("Invalid coordinate operation: %c.\n", oper);
-			exit(1);
+			exit(EXIT_FAILURE);
 	}
 }
 
@@ -105,7 +105,7 @@ void parse_coordinates(coord_t *coord, const char *arg, const coord_t *base) {
 					}
 				} else {
 					printf("Unknown first coordinate letter: %c.\n", c);
-					exit(1);
+					exit(EXIT_FAILURE);
 				}
 				break;
 			case PARSING_COORDX:
@@ -123,7 +123,7 @@ void parse_coordinates(coord_t *coord, const char *arg, const coord_t *base) {
 					stage = PARSING_COORDY;
 				} else {
 					printf("Unknown next argument start for coordinate: %c.\n", c);
-					exit(1);
+					exit(EXIT_FAILURE);
 				}
 				break;
 			case PARSING_COORDY:
@@ -191,10 +191,6 @@ bool parse_command(const char *line) {
 	char command[COMMAND_MAX_SIZE];
 	char *argv[ARGUMENT_ARRAY_MAX_SIZE];
 
-#ifdef DEBUG
-	printf("> %s\n", line);
-#endif
-
 	if ((argc = parse_line(line, command, argv)) >= 0) {
 #ifdef DEBUG
 		printf("Command: %s - Arg. Count: %d\n", command, argc);
@@ -258,7 +254,7 @@ long to_base_unit(const char *str) {
 					// Invalid character.
 					printf("Invalid character found while trying to parse a "
 							"number: %c.\n", c);
-					exit(1);
+					exit(EXIT_FAILURE);
 				}
 				break;
 			case PARSING_UNIT:
@@ -270,7 +266,7 @@ long to_base_unit(const char *str) {
 					// Invalid character.
 					printf("Invalid character found while trying to parse a "
 							"unit: %c.\n", c);
-					exit(1);
+					exit(EXIT_FAILURE);
 				}
 				break;
 		}
@@ -293,7 +289,7 @@ long to_base_unit(const char *str) {
 	} else {
 		// Invalid unit.
 		printf("Invalid unit: %s\n", unit);
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 #ifdef DEBUG

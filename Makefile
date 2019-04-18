@@ -13,7 +13,7 @@ $(PROJECT): $(OBJECTS)
 
 debug: CFLAGS += -g3 -DDEBUG
 debug: $(PROJECT)
-	./$(PROJECT)
+	./$(PROJECT) test.ncad
 
 %.o: %.c $(HEADERS)
 	$(CC) $(CFLAGS) -c $< -o $@
