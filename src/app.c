@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "nanocad.h"
+#include "graphics.h"
 
 // Constant definitions.
 #define WRAPPER_VERSION "0.1a"
@@ -28,6 +29,7 @@ int main(int argc, char **argv) {
 	print_welcome();
 	nanocad_init();
 
+	// Check for command line arguments.
 	if (argc < 2) {
 		// TODO: Present the command prompt.
 		printf("Not implemented!\n");
@@ -37,44 +39,11 @@ int main(int argc, char **argv) {
 		exit(EXIT_SUCCESS);
 	}
 
-	// Open the CAD file for parsing.
-	char *filename = argv[1];
-	FILE *fp = fopen(filename, "r");
-	if (fp == NULL) {
-		printf("Couldn't open the CAD file: %s\n", filename);
-		exit(EXIT_FAILURE);
-	}
+	// Parse the file.
+	parse_file(argv[1]);
 
-	// Go through each line.
-	char *line;
-	size_t len = 0;
-	ssize_t read;
-	unsigned int linenum = 1;
-	while ((read = getline(&line, &len, fp)) != -1) {
-		// Remove the trailling newline.
-		if (line[read - 1] == '\n') {
-			line[read - 1] = '\0';
-		}
-
-#ifdef DEBUG
-		if (linenum > 1) {
-			printf("\n\n");
-		}
-
-		printf("Line %d: %s\n", linenum, line);
-#endif
-
-		// Parse lines.
-		if (!parse_command(line)) {
-			printf("Failed to parse line %d: %s\n", linenum, line);
-		}
-
-		linenum++;
-	}
-
-	// Some clean-up.
-	fclose(fp);
-	free(line);
+	// Initialize the graphics.
+	graphics_init();
 
 	return 0;
 }

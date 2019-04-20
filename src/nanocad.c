@@ -419,6 +419,55 @@ int parse_line(const char *line, char *command, char **arguments) {
 }
 
 /**
+ * Parses a nanoCAD formatted file.
+ *
+ * @param  filename Path to the file to be parsed.
+ * @return          TRUE if everything went OK.
+ */
+bool parse_file(const char *filename) {
+	// Open the CAD file for parsing.
+	FILE *fp = fopen(filename, "r");
+	if (fp == NULL) {
+		printf("Couldn't open the CAD file: %s\n", filename);
+		return false;
+	}
+
+	// Go through each line.
+	char *line;
+	size_t len = 0;
+	ssize_t read;
+	unsigned int linenum = 1;
+	while ((read = getline(&line, &len, fp)) != -1) {
+		// Remove the trailling newline.
+		if (line[read - 1] == '\n') {
+			line[read - 1] = '\0';
+		}
+
+#ifdef DEBUG
+		if (linenum > 1) {
+			printf("\n\n");
+		}
+
+		printf("Line %d: %s\n", linenum, line);
+#endif
+
+		// Parse lines.
+		if (!parse_command(line)) {
+			printf("Failed to parse line %d: %s\n", linenum, line);
+			return false;
+		}
+
+		linenum++;
+	}
+
+	// Some clean-up.
+	fclose(fp);
+	free(line);
+
+	return true;
+}
+
+/**
  * Gets a object from the objects array.
  *
  * @param  i Index of the object to be fetched.

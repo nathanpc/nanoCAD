@@ -44,6 +44,7 @@ typedef struct {
 // General functions.
 void nanocad_init();
 bool parse_command(const char *line);
+bool parse_file(const char *filename);
 
 // Object manipulation.
 object_t get_object(const size_t i);
