@@ -15,14 +15,14 @@ SDL_Renderer *renderer;
 /**
  * Initializes the SDL graphics context.
  */
-void graphics_init() {
+bool graphics_init(const int width, const int height) {
 	// Initialize SDL.
 	int sdl_init_status = SDL_Init(SDL_INIT_EVERYTHING);
 
 	if (sdl_init_status >= 0) {
 		// Create a window.
 		window = SDL_CreateWindow("nanoCAD", SDL_WINDOWPOS_CENTERED, 
-				SDL_WINDOWPOS_CENTERED, 600, 450,
+				SDL_WINDOWPOS_CENTERED, width, height,
 				SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN);
 
 		// Create the renderer.
@@ -30,12 +30,22 @@ void graphics_init() {
 			renderer = SDL_CreateRenderer(window, -1, 0);
 		} else {
 			printf("Couldn't create the SDL window.\n");
-			exit(1);
+			return false;
 		}
 	} else {
 		printf("There was an error while trying to initialize SDL: %d.\n",
 				sdl_init_status);
-		exit(1);
+		return false;
 	}
+
+	return true;
 }
 
+/**
+ *  Clean the trash.
+ */
+void graphics_clean() {
+	SDL_DestroyWindow(window);
+	SDL_DestroyRenderer(renderer);
+	SDL_Quit();
+}

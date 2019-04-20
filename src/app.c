@@ -40,10 +40,18 @@ int main(int argc, char **argv) {
 	}
 
 	// Parse the file.
-	parse_file(argv[1]);
+	if (!parse_file(argv[1])) {
+		return EXIT_FAILURE;
+	}
 
 	// Initialize the graphics.
-	graphics_init();
+	if (graphics_init(600, 450)) {
+		// TODO: Implement graphics code here.
+		graphics_clean();
+	} else {
+		graphics_clean();
+		return EXIT_FAILURE;
+	}
 
 	return 0;
 }

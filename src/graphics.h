@@ -8,8 +8,11 @@
 #ifndef _GRAPHICS_H
 #define _GRAPHICS_H
 
-// Initialization.
-void graphics_init();
+#include <stdbool.h>
+
+// Initialization and destruction.
+bool graphics_init(const int width, const int height);
+void graphics_clean();
 
 #endif
 
