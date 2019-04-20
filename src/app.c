@@ -46,8 +46,7 @@ int main(int argc, char **argv) {
 
 	// Initialize the graphics.
 	if (graphics_init(600, 450)) {
-		// TODO: Implement graphics code here.
-		graphics_clean();
+		graphics_eventloop();
 	} else {
 		graphics_clean();
 		return EXIT_FAILURE;

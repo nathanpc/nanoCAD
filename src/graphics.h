@@ -14,5 +14,8 @@
 bool graphics_init(const int width, const int height);
 void graphics_clean();
 
+// Event loop.
+void graphics_eventloop();
+
 #endif
 

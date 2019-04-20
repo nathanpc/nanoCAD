@@ -9,11 +9,20 @@
 #include "graphics.h"
 
 // SDL context.
-SDL_Window *window;
-SDL_Renderer *renderer;
+SDL_Window *window = NULL;
+SDL_Renderer *renderer = NULL;
+const uint8_t *keystates;
+bool running = false;
+
+// Internal functions.
+bool is_key_down(const SDL_Scancode key);
 
 /**
  * Initializes the SDL graphics context.
+ *
+ * @param  width  Window width.
+ * @param  height Window height.
+ * @return        TRUE if the initialization went according to plan.
  */
 bool graphics_init(const int width, const int height) {
 	// Initialize SDL.
@@ -38,6 +47,7 @@ bool graphics_init(const int width, const int height) {
 		return false;
 	}
 
+	running = true;
 	return true;
 }
 
@@ -48,4 +58,69 @@ void graphics_clean() {
 	SDL_DestroyWindow(window);
 	SDL_DestroyRenderer(renderer);
 	SDL_Quit();
+	running = false;
+}
+
+/**
+ *  Render loop.
+ */
+void graphics_eventloop() {
+	keystates = SDL_GetKeyboardState(0);
+	SDL_Event event;
+
+	while (running && SDL_WaitEvent(&event)) {
+		// Set the background color and clear the window.
+		SDL_SetRenderDrawColor(renderer, 240, 240, 240, 255);
+		SDL_RenderClear(renderer);
+
+		switch (event.type) {
+			case SDL_KEYDOWN:
+				if (is_key_down(SDL_SCANCODE_ESCAPE)) {
+					// Escape
+					SDL_Quit();
+					exit(EXIT_SUCCESS);
+				}
+				break;
+			case SDL_MOUSEMOTION:
+				break;
+			case SDL_WINDOWEVENT:
+				switch (event.window.event) {
+					case SDL_WINDOWEVENT_RESIZED:
+#ifdef DEBUG
+						SDL_Log("Window %d resized to %dx%d",
+								event.window.windowID, event.window.data1,
+								event.window.data2);
+#endif
+						break;
+				}
+				break;
+		}
+
+		// Update the graphics on the screen.
+		// TODO: update();
+
+		// Show the window.
+		SDL_RenderPresent(renderer);
+	}
+
+	// Clean up the house after the party.
+	graphics_clean();
+}
+
+/**
+ *  Check if a key is down.
+ *
+ *  @param  key SDL_Scancode for the key you want to be tested.
+ *  @return     TRUE if the key is down.
+ */
+bool is_key_down(const SDL_Scancode key) {
+	if (keystates != 0) {
+		if (keystates[key] == 1) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	return false;
 }
