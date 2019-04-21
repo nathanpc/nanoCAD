@@ -191,6 +191,12 @@ bool parse_command(const char *line) {
 	char command[COMMAND_MAX_SIZE];
 	char *argv[ARGUMENT_ARRAY_MAX_SIZE];
 
+	// Ignoring empty lines and comments.
+	if ((line[0] == '\0') || (line[0] == '#')) {
+		return true;
+	}
+
+	// Parse the line.
 	if ((argc = parse_line(line, command, argv)) >= 0) {
 #ifdef DEBUG
 		printf("Command: %s - Arg. Count: %d\n", command, argc);
@@ -438,11 +444,6 @@ bool parse_file(const char *filename) {
 	ssize_t read;
 	unsigned int linenum = 1;
 	while ((read = getline(&line, &len, fp)) != -1) {
-		if (line[0] == '\n') {
-			linenum++;
-			continue;
-		}
-
 		// Remove the trailling newline.
 		if (line[read - 1] == '\n') {
 			line[read - 1] = '\0';
