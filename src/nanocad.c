@@ -32,7 +32,7 @@ object_container objects;
 #define VALID_OBJECTS_SIZE 3
 char valid_objects[VALID_OBJECTS_SIZE][COMMAND_MAX_SIZE] = { "line", "rect", "circle" };
 
-// Function prototypes.
+// Internal functions.
 int parse_line(const char *line, char *command, char **arguments);
 int is_obj_command(const char *command);
 long to_base_unit(const char *str);
@@ -465,6 +465,16 @@ bool parse_file(const char *filename) {
 	free(line);
 
 	return true;
+}
+
+/**
+ * Retrieves the internal object container for external use.
+ *
+ * @param container Pointer that will be pointing to the internal object
+ * container.
+ */
+void get_container(object_container *container) {
+	*container = objects;
 }
 
 /**

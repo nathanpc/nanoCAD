@@ -48,6 +48,7 @@ bool parse_file(const char *filename);
 
 // Object manipulation.
 object_t get_object(const size_t i);
+void get_container(object_container *container);
 
 // Debug functions.
 void print_object_info(const object_t object);
