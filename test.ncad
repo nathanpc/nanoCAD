@@ -1,2 +1,30 @@
-line x1.5m;y30cm, h1.2m
-line x0;y0, w1m
+# test.ncad
+# A test file for nanoCAD.
+#
+# Author: Nathan Campos <nathanpc@dreamintech.net>
+
+# Drawing a bear as an example.
+
+# Head
+line x100;y100, w100
+line x200;y100, h100
+line x200;y200, w-100
+line x100;y200, h-100
+
+# Ear 1
+line x100;y200, h30
+line x100;y230, w30
+line x130;y230, h-30
+
+# Ear 2
+line x200;y200, h30
+line x200;y230, w-30
+line x170;y230, h-30
+
+# Mouth
+line x110;y120, x190;y120
+line x190;y120, h20
+line x190;y140, x110;y140
+line x110;y140, h-20
+line x110;y130, x190;y130
+
