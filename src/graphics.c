@@ -6,6 +6,9 @@
  */
 
 #include <SDL.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include "nanocad.h"
 #include "graphics.h"
 
 // SDL context.
@@ -16,6 +19,8 @@ bool running = false;
 
 // Internal functions.
 bool is_key_down(const SDL_Scancode key);
+void graphics_render();
+void graphics_eventloop();
 
 /**
  * Initializes the SDL graphics context.
@@ -26,7 +31,7 @@ bool is_key_down(const SDL_Scancode key);
  */
 bool graphics_init(const int width, const int height) {
 	// Initialize SDL.
-	int sdl_init_status = SDL_Init(SDL_INIT_EVERYTHING);
+	int sdl_init_status = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
 
 	if (sdl_init_status >= 0) {
 		// Create a window.
@@ -59,6 +64,33 @@ void graphics_clean() {
 	SDL_DestroyRenderer(renderer);
 	SDL_Quit();
 	running = false;
+}
+
+/**
+ * Render the CAD graphics on screen.
+ */
+void graphics_render() {
+	// Get the object container from the engine.
+	object_container objects;
+	get_container(&objects);
+
+	// Loop through each object and render it.
+	for (size_t i = 0; i < objects.count; i++) {
+		object_t obj = objects.list[i];
+		SDL_SetRenderDrawColor(renderer, 69, 69, 69, 255);  // Set render color.
+
+		switch (obj.type) {
+			case TYPE_LINE:
+				if (SDL_RenderDrawLine(renderer, obj.coord[0].x, obj.coord[0].y,
+							obj.coord[1].x, obj.coord[1].y) < 0) {
+					printf("Error rendering line: %s\n", SDL_GetError());
+				}
+				break;
+			default:
+				printf("Invalid object type.\n");
+				exit(EXIT_FAILURE);
+		}
+	}
 }
 
 /**
@@ -97,7 +129,7 @@ void graphics_eventloop() {
 		}
 
 		// Update the graphics on the screen.
-		// TODO: update();
+		graphics_render();
 
 		// Show the window.
 		SDL_RenderPresent(renderer);
