@@ -16,11 +16,16 @@ SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
 const uint8_t *keystates;
 bool running = false;
+coord_t origin;
 
 // Internal functions.
 bool is_key_down(const SDL_Scancode key);
+void set_origin(const int x, const int y);
+void reset_origin();
+int draw_line(const coord_t start, const coord_t end);
 void graphics_render();
 void graphics_eventloop();
+
 
 /**
  * Initializes the SDL graphics context.
@@ -32,6 +37,7 @@ void graphics_eventloop();
 bool graphics_init(const int width, const int height) {
 	// Initialize SDL.
 	int sdl_init_status = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
+	running = false;
 
 	if (sdl_init_status >= 0) {
 		// Create a window.
@@ -52,7 +58,10 @@ bool graphics_init(const int width, const int height) {
 		return false;
 	}
 
+	// Initialize variables.
 	running = true;
+	reset_origin();
+
 	return true;
 }
 
@@ -77,20 +86,42 @@ void graphics_render() {
 	// Loop through each object and render it.
 	for (size_t i = 0; i < objects.count; i++) {
 		object_t obj = objects.list[i];
-		SDL_SetRenderDrawColor(renderer, 69, 69, 69, 255);  // Set render color.
+		int ret = 0;
 
+		// Do something different according to each type of object.
 		switch (obj.type) {
 			case TYPE_LINE:
-				if (SDL_RenderDrawLine(renderer, obj.coord[0].x, obj.coord[0].y,
-							obj.coord[1].x, obj.coord[1].y) < 0) {
-					printf("Error rendering line: %s\n", SDL_GetError());
-				}
+				ret = draw_line(obj.coord[0], obj.coord[1]);
 				break;
 			default:
 				printf("Invalid object type.\n");
 				exit(EXIT_FAILURE);
 		}
+
+		// Report any errors if there were any.
+		if (ret < 0) {
+			printf("Error rendering line: %s\n", SDL_GetError());
+		}
 	}
+}
+
+/**
+ * Draws a line between two points.
+ *
+ * @param  start Starting point for the line.
+ * @param  end   Ending point.
+ * @return       SDL_RenderDrawLine return value.
+ */
+int draw_line(const coord_t start, const coord_t end) {
+	// Transpose the coordinates to our own origin.
+	int x1 = origin.x + start.x;
+	int y1 = origin.y - start.y;
+	int x2 = origin.x + end.x;
+	int y2 = origin.y - end.y;
+
+	// TODO: Change color by layer.
+	SDL_SetRenderDrawColor(renderer, 69, 69, 69, 255);
+	return SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
 }
 
 /**
@@ -123,6 +154,8 @@ void graphics_eventloop() {
 								event.window.windowID, event.window.data1,
 								event.window.data2);
 #endif
+
+						reset_origin();
 						break;
 				}
 				break;
@@ -137,6 +170,32 @@ void graphics_eventloop() {
 
 	// Clean up the house after the party.
 	graphics_clean();
+}
+
+/**
+ * Sets a new origin point relative to the SDL origin.
+ *
+ * @param x New x coordinate.
+ * @param y New y coordinate.
+ */
+void set_origin(const int x, const int y) {
+	origin.x = x;
+	origin.y = y;
+
+#ifdef DEBUG
+	printf("New origin set: (%d, %d)\n", (int)origin.x, (int)origin.y);
+#endif
+}
+
+/**
+ * Resets the origin back to a more cartesian place.
+ */
+void reset_origin() {
+	int y = 0;
+
+	// Get window size and set the Y coordinate only.
+	SDL_GetWindowSize(window, NULL, &y);
+	set_origin(0, y);
 }
 
 /**
