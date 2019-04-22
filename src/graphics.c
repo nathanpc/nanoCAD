@@ -138,6 +138,7 @@ void graphics_eventloop() {
 
 		switch (event.type) {
 			case SDL_KEYDOWN:
+				// Keyboard key pressed.
 				if (is_key_down(SDL_SCANCODE_ESCAPE)) {
 					// Escape
 					SDL_Quit();
@@ -145,8 +146,15 @@ void graphics_eventloop() {
 				}
 				break;
 			case SDL_MOUSEMOTION:
+				// Mouse movement.
+				if (event.motion.state & SDL_BUTTON(SDL_BUTTON_LEFT)) {
+					// Pan around the view.
+					set_origin(origin.x + event.motion.xrel,
+							origin.y + event.motion.yrel);
+				}
 				break;
 			case SDL_WINDOWEVENT:
+				// Window stuff.
 				switch (event.window.event) {
 					case SDL_WINDOWEVENT_RESIZED:
 #ifdef DEBUG
