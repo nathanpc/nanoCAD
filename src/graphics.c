@@ -11,17 +11,22 @@
 #include "nanocad.h"
 #include "graphics.h"
 
+// Constants
+#define ZOOM_INTENSITY 10
+
 // SDL context.
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
 const uint8_t *keystates;
 bool running = false;
 coord_t origin;
+int zoom_level = 100;
 
 // Internal functions.
 bool is_key_down(const SDL_Scancode key);
 void set_origin(const int x, const int y);
 void reset_origin();
+void zoom(const int percentage);
 int draw_line(const coord_t start, const coord_t end);
 void graphics_render();
 void graphics_eventloop();
@@ -130,6 +135,9 @@ int draw_line(const coord_t start, const coord_t end) {
 void graphics_eventloop() {
 	keystates = SDL_GetKeyboardState(0);
 	SDL_Event event;
+	int zoom_amount = 0;
+
+	// TODO: Handle touch events.
 
 	while (running && SDL_WaitEvent(&event)) {
 		// Set the background color and clear the window.
@@ -152,6 +160,13 @@ void graphics_eventloop() {
 					set_origin(origin.x + event.motion.xrel,
 							origin.y + event.motion.yrel);
 				}
+				break;
+			case SDL_MOUSEWHEEL:
+				zoom_amount = zoom_level + (event.wheel.y * ZOOM_INTENSITY);
+				zoom(zoom_amount);
+#ifdef DEBUG
+				printf("Zoom level: %d%%\n", zoom_amount);
+#endif
 				break;
 			case SDL_WINDOWEVENT:
 				// Window stuff.
@@ -178,6 +193,17 @@ void graphics_eventloop() {
 
 	// Clean up the house after the party.
 	graphics_clean();
+}
+
+/**
+ * Sets the current zoom level.
+ *
+ * @param percentage Percentage of zoom to be applied to the viewport.
+ */
+void zoom(const int percentage) {
+	zoom_level = percentage;
+	float scale = (float)zoom_level / 100;
+	SDL_RenderSetScale(renderer, scale, scale);
 }
 
 /**
