@@ -74,10 +74,11 @@ bool graphics_init(const int width, const int height) {
  *  Clean the trash.
  */
 void graphics_clean() {
+	running = false;
+
 	SDL_DestroyWindow(window);
 	SDL_DestroyRenderer(renderer);
 	SDL_Quit();
-	running = false;
 }
 
 /**
@@ -162,6 +163,7 @@ void graphics_eventloop() {
 				}
 				break;
 			case SDL_MOUSEWHEEL:
+				// Mouse wheel turned.
 				zoom_amount = zoom_level + (event.wheel.y * ZOOM_INTENSITY);
 				zoom(zoom_amount);
 #ifdef DEBUG
