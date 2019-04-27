@@ -47,8 +47,8 @@ bool graphics_init(const int width, const int height) {
 	if (sdl_init_status >= 0) {
 		// Create a window.
 		window = SDL_CreateWindow("nanoCAD", SDL_WINDOWPOS_CENTERED, 
-				SDL_WINDOWPOS_CENTERED, width, height,
-				SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN);
+								  SDL_WINDOWPOS_CENTERED, width, height,
+								  SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN);
 
 		// Create the renderer.
 		if (window != 0) {
@@ -59,7 +59,7 @@ bool graphics_init(const int width, const int height) {
 		}
 	} else {
 		printf("There was an error while trying to initialize SDL: %d.\n",
-				sdl_init_status);
+			   sdl_init_status);
 		return false;
 	}
 
@@ -96,12 +96,12 @@ void graphics_render() {
 
 		// Do something different according to each type of object.
 		switch (obj.type) {
-			case TYPE_LINE:
-				ret = draw_line(obj.coord[0], obj.coord[1]);
-				break;
-			default:
-				printf("Invalid object type.\n");
-				exit(EXIT_FAILURE);
+		case TYPE_LINE:
+			ret = draw_line(obj.coord[0], obj.coord[1]);
+			break;
+		default:
+			printf("Invalid object type.\n");
+			exit(EXIT_FAILURE);
 		}
 
 		// Report any errors if there were any.
@@ -146,44 +146,44 @@ void graphics_eventloop() {
 		SDL_RenderClear(renderer);
 
 		switch (event.type) {
-			case SDL_KEYDOWN:
-				// Keyboard key pressed.
-				if (is_key_down(SDL_SCANCODE_ESCAPE)) {
-					// Escape
-					SDL_Quit();
-					exit(EXIT_SUCCESS);
-				}
-				break;
-			case SDL_MOUSEMOTION:
-				// Mouse movement.
-				if (event.motion.state & SDL_BUTTON(SDL_BUTTON_LEFT)) {
-					// Pan around the view.
-					set_origin(origin.x + event.motion.xrel,
-							origin.y + event.motion.yrel);
-				}
-				break;
-			case SDL_MOUSEWHEEL:
-				// Mouse wheel turned.
-				zoom_amount = zoom_level + (event.wheel.y * ZOOM_INTENSITY);
-				zoom(zoom_amount);
+		case SDL_KEYDOWN:
+			// Keyboard key pressed.
+			if (is_key_down(SDL_SCANCODE_ESCAPE)) {
+				// Escape
+				SDL_Quit();
+				exit(EXIT_SUCCESS);
+			}
+			break;
+		case SDL_MOUSEMOTION:
+			// Mouse movement.
+			if (event.motion.state & SDL_BUTTON(SDL_BUTTON_LEFT)) {
+				// Pan around the view.
+				set_origin(origin.x + event.motion.xrel,
+						   origin.y + event.motion.yrel);
+			}
+			break;
+		case SDL_MOUSEWHEEL:
+			// Mouse wheel turned.
+			zoom_amount = zoom_level + (event.wheel.y * ZOOM_INTENSITY);
+			zoom(zoom_amount);
 #ifdef DEBUG
-				printf("Zoom level: %d%%\n", zoom_amount);
+			printf("Zoom level: %d%%\n", zoom_amount);
 #endif
-				break;
-			case SDL_WINDOWEVENT:
-				// Window stuff.
-				switch (event.window.event) {
-					case SDL_WINDOWEVENT_RESIZED:
+			break;
+		case SDL_WINDOWEVENT:
+			// Window stuff.
+			switch (event.window.event) {
+			case SDL_WINDOWEVENT_RESIZED:
 #ifdef DEBUG
-						SDL_Log("Window %d resized to %dx%d",
-								event.window.windowID, event.window.data1,
-								event.window.data2);
+				SDL_Log("Window %d resized to %dx%d",
+						event.window.windowID, event.window.data1,
+						event.window.data2);
 #endif
 
-						reset_origin();
-						break;
-				}
+				reset_origin();
 				break;
+			}
+			break;
 		}
 
 		// Update the graphics on the screen.
