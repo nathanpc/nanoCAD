@@ -1,5 +1,5 @@
 PROJECT = nanocad
-CC = gcc
+CC = clang
 RM = rm -f
 CFLAGS = -Wall -std=gnu99 $(shell sdl2-config --cflags)
 LDFLAGS = -lreadline $(shell sdl2-config --libs)
