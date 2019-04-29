@@ -29,6 +29,6 @@ line x110;y140, h-20
 line x110;y130, x190;y130
 
 # Variable tests.
-set $val, 100                   # Sample value variable.
-set @coord, x100;y50            # Sample coordinate variable.
-#set &obj, line x200;y200, w200  # Sample object variable.
+set $val, 100                # Sample value variable.
+set @coord, x100;y50         # Sample coordinate variable.
+line x200;y200, w200 = &obj  # Sample object variable.

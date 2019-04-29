@@ -12,15 +12,16 @@
 #include <ctype.h>
 
 // Line parsing stage definitions.
-#define PARSING_START     0
-#define PARSING_COMMAND   1
-#define PARSING_ARGUMENTS 2
-#define PARSING_COORDX    3
-#define PARSING_COORDY    4
-#define PARSING_WIDTH     6
-#define PARSING_HEIGHT    7
-#define PARSING_NUMBER    8
-#define PARSING_UNIT      9
+#define PARSING_START      0
+#define PARSING_COMMAND    1
+#define PARSING_ARGUMENTS  2
+#define PARSING_COORDX     3
+#define PARSING_COORDY     4
+#define PARSING_WIDTH      6
+#define PARSING_HEIGHT     7
+#define PARSING_NUMBER     8
+#define PARSING_UNIT       9
+#define PARSING_SET_OBJVAR 10
 
 // Operation type definitions.
 #define OPERATION_WIDTH  'w'
@@ -77,6 +78,7 @@ void nanocad_init() {
  * @param value Variable value.
  */
 void set_variable(const char *name, const char *value) {
+	size_t obj_index;
 	variable_t var;
 	var.type = *name++;
 	var.name = strdup(name);
@@ -93,8 +95,19 @@ void set_variable(const char *name, const char *value) {
 		var.value = malloc(sizeof(coord_t));
 		parse_coordinates((coord_t*)var.value, value, NULL);
 		break;
+	case VARIABLE_OBJECT:
+		var.value = malloc(sizeof(size_t));
+
+		if (sscanf(value, "%zu", &obj_index) == 1) {
+			*((size_t*)var.value) = obj_index;
+		} else {
+			printf("Couldn't parse object index when assigning to variable.\n");
+			exit(EXIT_FAILURE);
+		}
+		break;
 	default:
-		printf("Error: Invalid variable type '%c' in %s\n", var.type, var.name);
+		printf("Invalid variable type '%c' in %s\n", var.type, var.name);
+		exit(EXIT_FAILURE);
 	}
 
 	// Dynamically add the new variable to the array.
@@ -137,6 +150,9 @@ void print_variable_info(const variable_t var) {
 	case VARIABLE_COORD:
 		printf("(%lu, %lu)\n", ((coord_t*)var.value)->x,
 			   ((coord_t*)var.value)->y);
+		break;
+	case VARIABLE_OBJECT:
+		print_object_info(objects.list[*((size_t*)var.value)]);
 		break;
 	default:
 		printf("UNKNOWN\n");
@@ -280,8 +296,19 @@ void create_object(const int type, const char argc, char **argv) {
 	// Dynamically add the new object to the array.
 	objects.list = realloc(objects.list,
 						   sizeof(object_t) * (objects.count + 1));
-	objects.list[objects.count] = obj;
-	objects.count++;
+	objects.list[objects.count++] = obj;
+	
+	// Check if we need to store this object into a variable.
+	if (argv[argc - 1][0] == '&') {
+		// Pass the object index as a string to be compliant with the function.
+		char str_idx[VARIABLE_MAX_SIZE];
+		snprintf(str_idx, VARIABLE_MAX_SIZE, "%lu", objects.count - 1);
+		set_variable(argv[argc - 1], str_idx);
+		
+#ifdef DEBUG
+		print_variable_info(variables.list[variables.count - 1]);
+#endif
+	}
 }
 
 /**
@@ -452,8 +479,8 @@ void print_object_info(const object_t object) {
  * @param  command   Pointer to a string that will contain the command after
  *                   parsing.
  * @param  arguments Array of strings that will contain the arguemnts.
- * @return           Number of arguments found for the command or -1 if there was
- *                   an error while parsing.
+ * @return           Number of arguments found for the command or -1 if there
+ *                   was an error while parsing.
  */
 int parse_line(const char *line, char *command, char **arguments) {
 	uint8_t stage = PARSING_COMMAND;
@@ -477,7 +504,7 @@ int parse_line(const char *line, char *command, char **arguments) {
 		// Treat each stage of parsing differently.
 		switch (stage) {
 		case PARSING_COMMAND:
-			if (c == ' ') {
+			if ((c == ' ') || (c == '\t')) {
 				// Space found, so the command part has ended.
 				command[cur_cpos] = '\0';
 				chomp(command);
@@ -508,8 +535,14 @@ int parse_line(const char *line, char *command, char **arguments) {
 					printf("Maximum number of arguments exceeded.\n");
 					return -1;
 				}
-			} else if ((c == ' ') && (cur_cpos == 0)) {
-				// Ignoring the space after commas.
+			} else if ((c == ' ') || (c == '\t')) {
+				// Ignoring the spaces or tabs.
+			} else if (c == '=') {
+				// We need to make sure we'll store this into a variable.
+				chomp(cur_arg);
+				arguments[argc - 1] = strdup(cur_arg);
+				cur_cpos = 0;
+				stage = PARSING_SET_OBJVAR;
 			} else {
 				// Increment the argument counter if at start of an argument.
 				if (cur_cpos == 0) {
@@ -526,11 +559,36 @@ int parse_line(const char *line, char *command, char **arguments) {
 				}
 			}
 			break;
+		case PARSING_SET_OBJVAR:
+			// Check if we are starting with the right variable type.
+			if (cur_cpos == 0) {
+				if ((c != ' ') && (c != '\t') && (c != '&')) {
+					printf("Unknown first character for a object variable "
+						   "'%c'\n", c);
+					return -1;
+				} else if (c == '&') {
+					cur_arg[cur_cpos++] = c;
+					cur_arg[cur_cpos] = '\0';
+				}
+			} else if ((c == ' ') || (c == '\t')) {
+				// Reached a space. The variable must have ended.
+				break;
+			} else {
+				// Get variable name.
+				cur_arg[cur_cpos++] = c;
+				cur_arg[cur_cpos] = '\0';
+			}
+			break;
 		default:
 			printf("ERROR: Unknown line parsing state. This shouldn't "
 				   "happen.\n");
 			return -1;
 		}
+	}
+
+	// Leave the object variable as a argument to be dealt with later.
+	if (stage == PARSING_SET_OBJVAR) {
+		argc++;
 	}
 
 	// Store the last argument parsed.
