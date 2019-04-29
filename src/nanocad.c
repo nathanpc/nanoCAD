@@ -89,6 +89,12 @@ void set_variable(const char *name, const char *value) {
 		var.value = malloc(sizeof(double));
 		*((double*)var.value) = atof(value);
 		break;
+	case VARIABLE_COORD:
+		var.value = malloc(sizeof(coord_t));
+		parse_coordinates((coord_t*)var.value, value, NULL);
+		break;
+	default:
+		printf("Error: Invalid variable type '%c' in %s\n", var.type, var.name);
 	}
 
 	// Dynamically add the new variable to the array.
@@ -127,6 +133,10 @@ void print_variable_info(const variable_t var) {
 	switch (var.type) {
 	case VARIABLE_FIXED:
 		printf("%f\n", *((double*)var.value));
+		break;
+	case VARIABLE_COORD:
+		printf("(%lu, %lu)\n", ((coord_t*)var.value)->x,
+			   ((coord_t*)var.value)->y);
 		break;
 	default:
 		printf("UNKNOWN\n");
