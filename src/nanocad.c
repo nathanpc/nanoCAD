@@ -88,14 +88,17 @@ void set_variable(const char *name, const char *value) {
 	// Parse variable value according to type.
 	switch (var.type) {
 	case VARIABLE_FIXED:
+		// Fixed value.
 		var.value = malloc(sizeof(double));
 		*((double*)var.value) = atof(value);
 		break;
 	case VARIABLE_COORD:
+		// Coordinate.
 		var.value = malloc(sizeof(coord_t));
 		parse_coordinates((coord_t*)var.value, value, NULL);
 		break;
 	case VARIABLE_OBJECT:
+		// Object.
 		var.value = malloc(sizeof(size_t));
 
 		if (sscanf(value, "%zu", &obj_index) == 1) {

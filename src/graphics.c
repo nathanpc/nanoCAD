@@ -179,7 +179,6 @@ void graphics_eventloop() {
 						event.window.windowID, event.window.data1,
 						event.window.data2);
 #endif
-
 				reset_origin();
 				break;
 			}
