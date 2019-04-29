@@ -9,6 +9,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 // Line parsing stage definitions.
 #define PARSING_START     0
@@ -30,9 +31,12 @@ object_container objects;
 
 // Command type definitions.
 #define VALID_OBJECTS_SIZE 3
-char valid_objects[VALID_OBJECTS_SIZE][COMMAND_MAX_SIZE] = { "line", "rect", "circle" };
+char valid_objects[VALID_OBJECTS_SIZE][COMMAND_MAX_SIZE] = { "line",
+															 "rect",
+															 "circle" };
 
 // Internal functions.
+void chomp(char *str);
 int parse_line(const char *line, char *command, char **arguments);
 bool parse_file(const char *filename);
 int is_obj_command(const char *command);
@@ -368,6 +372,11 @@ int parse_line(const char *line, char *command, char **arguments) {
 	while (*line != '\0') {
 		// Get the current character.
 		char c = *line++;
+		
+		// Ignore everything after the start of a comment.
+		if (c == '#') {
+			break;
+		}
 
 		// Treat each stage of parsing differently.
 		switch (stage) {
@@ -375,6 +384,7 @@ int parse_line(const char *line, char *command, char **arguments) {
 			if (c == ' ') {
 				// Space found, so the command part has ended.
 				command[cur_cpos] = '\0';
+				chomp(command);
 				cur_cpos = 0;
 				argc = 0;
 				stage = PARSING_ARGUMENTS;
@@ -393,6 +403,7 @@ int parse_line(const char *line, char *command, char **arguments) {
 		case PARSING_ARGUMENTS:
 			if (c == ',') {
 				// Comma found, so the argument has ended.
+				chomp(cur_arg);
 				arguments[argc - 1] = strdup(cur_arg);
 				cur_cpos = 0;
 				cur_arg[0] = '\0';
@@ -428,6 +439,7 @@ int parse_line(const char *line, char *command, char **arguments) {
 
 	// Store the last argument parsed.
 	if (argc > 0) {
+		chomp(cur_arg);
 		arguments[argc - 1] = strdup(cur_arg);
 	}
 
@@ -481,6 +493,20 @@ bool parse_file(const char *filename) {
 	free(line);
 
 	return true;
+}
+
+/**
+ * Removes trailling whitespace from a string.
+ * Warning: This function modifies the original string.
+ * 
+ * @param str String to be trimmed.
+ */
+void chomp(char *str) {
+	for (int i = strlen(str) - 1; i >= 0; i--) {
+		if (isspace(str[i])) {
+			str[i] = '\0';
+		}
+	}
 }
 
 /**

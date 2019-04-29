@@ -31,13 +31,14 @@ typedef struct {
 
 // Object structure.
 typedef struct {
-	uint8_t type;
-	uint8_t coord_count;
+	uint8_t  type;
+	uint8_t  coord_count;
 	coord_t *coord;
 } object_t;
 
+// Object container.
 typedef struct {
-	size_t count;
+	size_t    count;
 	object_t *list;
 } object_container;
 
