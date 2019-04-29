@@ -26,8 +26,14 @@
 #define OPERATION_WIDTH  'w'
 #define OPERATION_HEIGHT 'h'
 
+// Variable type definitions.
+#define VARIABLE_FIXED  '$'
+#define VARIABLE_COORD  '@'
+#define VARIABLE_OBJECT '&'
+
 // Stored structures.
 object_container objects;
+variable_container variables;
 
 // Command type definitions.
 #define VALID_OBJECTS_SIZE 3
@@ -35,22 +41,96 @@ char valid_objects[VALID_OBJECTS_SIZE][COMMAND_MAX_SIZE] = { "line",
 															 "rect",
 															 "circle" };
 
-// Internal functions.
+/**
+ * Internal functions.
+ */
+// Various utilities.
 void chomp(char *str);
-int parse_line(const char *line, char *command, char **arguments);
-bool parse_file(const char *filename);
 int is_obj_command(const char *command);
 long to_base_unit(const char *str);
-void calc_coordinate(const char oper, const coord_t base, coord_t *coord);
+
+// Variables.
+void set_variable(const char *name, const char *value);
+
+// Parsing.
+int parse_line(const char *line, char *command, char **arguments);
 void parse_coordinates(coord_t *coord, const char *arg, const coord_t *base);
+
+// Coordinates.
+void calc_coordinate(const char oper, const coord_t base, coord_t *coord);
+
+// Objects.
 void create_object(const int type, const char argc, char **argv);
-void nanocad_init();
 
 /**
  * Initializes the engine.
  */
 void nanocad_init() {
 	objects.count = 0;
+	variables.count = 0;
+}
+
+/**
+ * Sets a internal variable.
+ * 
+ * @param name  Variable name.
+ * @param value Variable value.
+ */
+void set_variable(const char *name, const char *value) {
+	variable_t var;
+	var.type = *name++;
+	var.name = strdup(name);
+
+	// TODO: Check if already exists, if so, override.
+	
+	// Parse variable value according to type.
+	switch (var.type) {
+	case VARIABLE_FIXED:
+		var.value = malloc(sizeof(double));
+		*((double*)var.value) = atof(value);
+		break;
+	}
+
+	// Dynamically add the new variable to the array.
+	variables.list = realloc(variables.list,
+							 sizeof(variable_t) * (variables.count + 1));
+	variables.list[variables.count] = var;
+	variables.count++;
+}
+
+/**
+ * Prints some debug information about a variable.
+ * 
+ * @param var Variable to be debuged.
+ */
+void print_variable_info(const variable_t var) {
+	printf("Variable Type: %c - ", var.type);
+
+	// Print human-readable type.
+	switch (var.type) {
+	case VARIABLE_FIXED:
+		printf("Fixed Value\n");
+		break;
+	case VARIABLE_COORD:
+		printf("Coordinate\n");
+		break;
+	case VARIABLE_OBJECT:
+		printf("Object\n");
+		break;
+	default:
+		printf("UNKNOWN\n");
+	}
+
+	printf("Name: %s - Value: ", var.name);
+	
+	// Print value according to type.
+	switch (var.type) {
+	case VARIABLE_FIXED:
+		printf("%f\n", *((double*)var.value));
+		break;
+	default:
+		printf("UNKNOWN\n");
+	}
 }
 
 /**
@@ -225,6 +305,12 @@ bool parse_command(const char *line) {
 			create_object(type, argc, argv);
 #ifdef DEBUG
 			print_object_info(objects.list[objects.count - 1]);
+#endif
+		} else if (strcmp("set", command) == 0) {
+			// Command will set a variable.
+			set_variable(argv[0], argv[1]);
+#ifdef DEBUG
+			print_variable_info(variables.list[variables.count - 1]);
 #endif
 		} else {
 			// Not a known command.

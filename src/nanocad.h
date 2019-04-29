@@ -16,7 +16,8 @@
 #define ENGINE_VERSION          "0.1a"
 #define COMMAND_MAX_SIZE        15  // Yes, I'm lazy. Until further notice,
 #define ARGUMENT_MAX_SIZE       30  // no dynamic-sized string and arrays for
-#define ARGUMENT_ARRAY_MAX_SIZE 4   // you.
+#define VARIABLE_MAX_SIZE       15  // you.
+#define ARGUMENT_ARRAY_MAX_SIZE 4
 
 // Object type definitions.
 #define TYPE_LINE   1
@@ -42,8 +43,23 @@ typedef struct {
 	object_t *list;
 } object_container;
 
-// General functions.
+// Variable structure.
+typedef struct {
+	uint8_t  type;
+	char    *name;
+	void    *value;
+} variable_t;
+
+// Variable container.
+typedef struct {
+	size_t      count;
+	variable_t *list;
+} variable_container;
+
+// Initialization.
 void nanocad_init();
+
+// General parsing.
 bool parse_command(const char *line);
 bool parse_file(const char *filename);
 
@@ -53,6 +69,7 @@ void get_container(object_container *container);
 
 // Debug functions.
 void print_object_info(const object_t object);
+void print_variable_info(const variable_t var);
 
 #endif
 
