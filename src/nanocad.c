@@ -35,6 +35,7 @@
 // Stored structures.
 object_container objects;
 variable_container variables;
+history_container history;
 
 // Command type definitions.
 #define VALID_OBJECTS_SIZE 3
@@ -49,6 +50,9 @@ char valid_objects[VALID_OBJECTS_SIZE][COMMAND_MAX_SIZE] = { "line",
 void chomp(char *str);
 int is_obj_command(const char *command);
 long to_base_unit(const char *str);
+
+// History.
+void add_history_line(const char *line);
 
 // Variables.
 void set_variable(const char *name, const char *value);
@@ -67,8 +71,10 @@ void create_object(const int type, const char argc, char **argv);
  * Initializes the engine.
  */
 void nanocad_init() {
+	// Initialize the container counts.
 	objects.count = 0;
 	variables.count = 0;
+	history.count = 0;
 }
 
 /**
@@ -327,6 +333,7 @@ bool parse_command(const char *line) {
 
 	// Ignoring empty lines and comments.
 	if ((line[0] == '\0') || (line[0] == '#')) {
+		add_history_line(line);
 		return true;
 	}
 
@@ -358,6 +365,7 @@ bool parse_command(const char *line) {
 			return false;
 		}
 
+		add_history_line(line);
 		return true;
 	}
 
@@ -473,6 +481,26 @@ void print_object_info(const object_t object) {
 	for (uint8_t i = 0; i < object.coord_count; i++) {
 		printf("    %d. (%ld, %ld)\n", i, object.coord[i].x, object.coord[i].y);
 	}
+}
+
+/**
+ * Prints a list of all the lines in the history container.
+ */
+void print_line_history() {
+	for (size_t i = 0; i < history.count; i++) {
+		printf("%03lu: %s\n", i + 1, history.lines[i]);
+	}
+}
+
+/**
+ * Adds a line to the command history.
+ * 
+ * @param line Line to be added to the history.
+ */
+void add_history_line(const char *line) {
+	// Dynamically add a new line to the array.
+	history.lines = realloc(history.lines, sizeof(char*) * (history.count + 1));
+	history.lines[history.count++] = strdup(line);
 }
 
 /**
@@ -685,4 +713,3 @@ void get_container(object_container *container) {
 object_t get_object(const size_t i) {
 	return objects.list[i];
 }
-

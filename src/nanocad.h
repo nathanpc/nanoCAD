@@ -56,6 +56,12 @@ typedef struct {
 	variable_t *list;
 } variable_container;
 
+// Line history container.
+typedef struct {
+	size_t   count;
+	char   **lines;
+} history_container;
+
 // Initialization.
 void nanocad_init();
 
@@ -70,6 +76,7 @@ void get_container(object_container *container);
 // Debug functions.
 void print_object_info(const object_t object);
 void print_variable_info(const variable_t var);
+void print_line_history();
 
 #endif
 

@@ -43,6 +43,11 @@ int main(int argc, char **argv) {
 	if (!parse_file(argv[1])) {
 		return EXIT_FAILURE;
 	}
+	
+#ifdef DEBUG
+	// Print the command line history.
+	print_line_history();
+#endif
 
 	// Initialize the graphics.
 	if (graphics_init(600, 450)) {
