@@ -447,7 +447,8 @@ long to_base_unit(const char *str) {
 	}
 
 #ifdef DEBUG
-	printf("Number: %s - Unit: %s - Double: %f - Final: %ld\n", strnum, unit, orig, num);
+	printf("Number: %s - Unit: %s - Double: %f - Final: %ld\n", strnum, unit,
+		   orig, num);
 #endif
 
 	return num;
@@ -475,7 +476,8 @@ int is_obj_command(const char *command) {
  * @param object Object that you want to get information from.
  */
 void print_object_info(const object_t object) {
-	printf("Object Type: %d - %s\n", object.type, valid_objects[object.type - 1]);
+	printf("Object Type: %d - %s\n", object.type,
+		   valid_objects[object.type - 1]);
 	printf("Coordinates (%d total):\n", object.coord_count);
 
 	for (uint8_t i = 0; i < object.coord_count; i++) {

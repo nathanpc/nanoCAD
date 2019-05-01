@@ -64,7 +64,8 @@ int main(int argc, char **argv) {
  * Prints a little "welcome" message.
  */
 void print_welcome() {
-	printf("nanoCAD wrapper v%s (engine v%s)\n\n", WRAPPER_VERSION, ENGINE_VERSION);
+	printf("nanoCAD wrapper v%s (engine v%s)\n\n", WRAPPER_VERSION,
+		   ENGINE_VERSION);
 }
 
 /**
