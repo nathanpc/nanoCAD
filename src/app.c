@@ -49,6 +49,7 @@ int main(int argc, char **argv) {
 	print_line_history();
 #endif
 
+#ifndef MEMCHECK
 	// Initialize the graphics.
 	if (graphics_init(600, 450)) {
 		graphics_eventloop();
@@ -56,6 +57,7 @@ int main(int argc, char **argv) {
 		graphics_clean();
 		return EXIT_FAILURE;
 	}
+#endif
 
 	return 0;
 }
