@@ -25,4 +25,5 @@ memcheck: $(PROJECT)
 clean:
 	$(RM) -r src/*.o
 	$(RM) $(PROJECT)
+	$(RM) valgrind.log
 
