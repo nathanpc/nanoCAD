@@ -19,7 +19,7 @@ debug: $(PROJECT)
 
 memcheck: CFLAGS += -g3 -DDEBUG -DMEMCHECK
 memcheck: $(PROJECT)
-	valgrind --tool=memcheck --leak-check=yes --log-file=valgrind.log ./$(PROJECT) test.ncad
+	valgrind --tool=memcheck --leak-check=yes --show-leak-kinds=all --track-origins=yes --log-file=valgrind.log ./$(PROJECT) test.ncad
 	cat valgrind.log
 
 clean:

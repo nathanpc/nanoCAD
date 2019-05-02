@@ -59,6 +59,8 @@ int main(int argc, char **argv) {
 	}
 #endif
 
+	// Clean up the mess left by the engine and return.
+	nanocad_destroy();
 	return 0;
 }
 

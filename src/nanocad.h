@@ -62,8 +62,9 @@ typedef struct {
 	char   **lines;
 } history_container;
 
-// Initialization.
+// Initialization and clean-up.
 void nanocad_init();
+void nanocad_destroy();
 
 // General parsing.
 bool parse_command(const char *line);

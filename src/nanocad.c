@@ -33,9 +33,9 @@
 #define VARIABLE_OBJECT '&'
 
 // Stored structures.
-object_container objects;
+object_container   objects;
 variable_container variables;
-history_container history;
+history_container  history;
 
 // Command type definitions.
 #define VALID_OBJECTS_SIZE 3
@@ -47,6 +47,7 @@ char valid_objects[VALID_OBJECTS_SIZE][COMMAND_MAX_SIZE] = { "line",
  * Internal functions.
  */
 // Various utilities.
+void free_array(void **arr, const size_t len);
 void chomp(char *str);
 int is_obj_command(const char *command);
 long to_base_unit(const char *str);
@@ -56,6 +57,8 @@ void add_history_line(const char *line);
 
 // Variables.
 void set_variable(const char *name, const char *value);
+variable_t* get_variable(const char *name);
+char* variable_strval(const char *name);
 
 // Parsing.
 int parse_line(const char *line, char *command, char **arguments);
@@ -75,6 +78,30 @@ void nanocad_init() {
 	objects.count = 0;
 	variables.count = 0;
 	history.count = 0;
+}
+
+/**
+ * Destroys everything related to the engine and frees the memory properly.
+ */
+void nanocad_destroy() {
+	// Free all of the history lines.
+	free_array(history.lines, history.count);
+
+	// Free all of the variables.
+	for (size_t i = 0; i < variables.count; i++) {
+		free(variables.list[i].name);
+		free(variables.list[i].value);
+	}
+
+	// Free all of the objects.
+	for (size_t i = 0; i < objects.count; i++) {
+		free(objects.list[i].coord);
+	}
+	
+	// Free all of the containers.
+	free(variables.list);
+	free(objects.list);
+	free(history.lines);
 }
 
 /**
@@ -124,6 +151,28 @@ void set_variable(const char *name, const char *value) {
 							 sizeof(variable_t) * (variables.count + 1));
 	variables.list[variables.count] = var;
 	variables.count++;
+}
+
+/**
+ * Gets a variable value by its name.
+ * 
+ * @param  name Variable name to be searched for.
+ * @return      Pointer to the variable structure or NULL if it wasn't found.
+ */
+variable_t* get_variable(const char *name) {
+	// TODO: Search for a variable and return its value.
+	return NULL;
+}
+
+/**
+ * Gets a string representation of the variable value to be substituted into
+ * a command.
+ * 
+ * @param  name Variable name to be searched for.
+ * @return      String representation of the variable value.
+ */
+char* variable_strval(const char *name) {
+	// TODO: Implement this.
 }
 
 /**
@@ -362,13 +411,16 @@ bool parse_command(const char *line) {
 		} else {
 			// Not a known command.
 			printf("Unknown command.\n");
+			free_array(argv, ARGUMENT_ARRAY_MAX_SIZE);
 			return false;
 		}
 
 		add_history_line(line);
+		free_array(argv, ARGUMENT_ARRAY_MAX_SIZE);
 		return true;
 	}
 
+	free_array(argv, ARGUMENT_ARRAY_MAX_SIZE);
 	return false;
 }
 
@@ -714,4 +766,16 @@ void get_container(object_container *container) {
  */
 object_t get_object(const size_t i) {
 	return objects.list[i];
+}
+
+/**
+ * Frees up all of the memory used up in a array.
+ * 
+ * @param arr Array to have its items freed.
+ * @param len Length of the array.
+ */
+void free_array(void **arr, const size_t len) {
+	for (size_t i = 0; i < len; i++) {
+		free(arr[i]);
+	}
 }
