@@ -56,9 +56,9 @@ long to_base_unit(const char *str);
 void add_history_line(const char *line);
 
 // Variables.
-void set_variable(const char *name, const char *value);
 variable_t* get_variable(const char *name);
-char* variable_strval(const char *name);
+void variable_strval(const char *name, char strval[ARGUMENT_MAX_SIZE]);
+void set_variable(const char *name, const char *value);
 
 // Parsing.
 int parse_line(const char *line, char *command, char **arguments);
@@ -85,7 +85,7 @@ void nanocad_init() {
  */
 void nanocad_destroy() {
 	// Free all of the history lines.
-	free_array(history.lines, history.count);
+	free_array((void**)history.lines, history.count);
 
 	// Free all of the variables.
 	for (size_t i = 0; i < variables.count; i++) {
@@ -116,7 +116,13 @@ void set_variable(const char *name, const char *value) {
 	var.type = *name++;
 	var.name = strdup(name);
 
-	// TODO: Check if already exists, if so, override.
+	variable_t *old_var = get_variable(name);
+	if (old_var != NULL) {
+		// TODO: Check if already exists, if so, override.
+		printf("Variable '%s' already exists. Can't set a new value\n", name);
+		printf("This will be implemented in the future.\n");
+		exit(EXIT_FAILURE);
+	}
 	
 	// Parse variable value according to type.
 	switch (var.type) {
@@ -151,6 +157,12 @@ void set_variable(const char *name, const char *value) {
 							 sizeof(variable_t) * (variables.count + 1));
 	variables.list[variables.count] = var;
 	variables.count++;
+	
+#ifdef DEBUG
+	char strval[ARGUMENT_MAX_SIZE];
+	variable_strval(name, strval);
+	printf("String representation of '%c%s': %s\n", var.type, var.name, strval);
+#endif
 }
 
 /**
@@ -160,7 +172,14 @@ void set_variable(const char *name, const char *value) {
  * @return      Pointer to the variable structure or NULL if it wasn't found.
  */
 variable_t* get_variable(const char *name) {
-	// TODO: Search for a variable and return its value.
+	// Search through the variables.
+	for (size_t i = 0; i < variables.count; i++) {
+		// If the names are the same then return a pointer to the variable.
+		if (strcmp(name, variables.list[i].name) == 0) {
+			return &variables.list[i];
+		}
+	}
+
 	return NULL;
 }
 
@@ -168,11 +187,31 @@ variable_t* get_variable(const char *name) {
  * Gets a string representation of the variable value to be substituted into
  * a command.
  * 
- * @param  name Variable name to be searched for.
- * @return      String representation of the variable value.
+ * @param name   Variable name to be searched for.
+ * @param strval String representation of the variable value.
  */
-char* variable_strval(const char *name) {
-	// TODO: Implement this.
+void variable_strval(const char *name, char strval[ARGUMENT_MAX_SIZE]) {
+	// Check if there is any variable with this name.
+	variable_t *var = get_variable(name);
+	if (var == NULL) {
+		printf("Variable '%s' not found\n", name);
+		exit(EXIT_FAILURE);
+	}
+
+	// Output the correct string depending on the variable type.
+	switch (var->type) {
+	case VARIABLE_FIXED:
+		snprintf(strval, ARGUMENT_MAX_SIZE, "%f", *((double*)var->value));
+		break;
+	case VARIABLE_COORD:
+		snprintf(strval, ARGUMENT_MAX_SIZE, "x%ld;y%ld",
+				 ((coord_t*)var->value)->x, ((coord_t*)var->value)->y);
+		break;
+	default:
+		printf("Invalid variable type '%c' in variable '%s'\n",
+			   var->type, var->name);
+		exit(EXIT_FAILURE);
+	}
 }
 
 /**
@@ -411,16 +450,16 @@ bool parse_command(const char *line) {
 		} else {
 			// Not a known command.
 			printf("Unknown command.\n");
-			free_array(argv, ARGUMENT_ARRAY_MAX_SIZE);
+			free_array((void**)argv, ARGUMENT_ARRAY_MAX_SIZE);
 			return false;
 		}
 
 		add_history_line(line);
-		free_array(argv, ARGUMENT_ARRAY_MAX_SIZE);
+		//free_array(argv, ARGUMENT_ARRAY_MAX_SIZE);
 		return true;
 	}
 
-	free_array(argv, ARGUMENT_ARRAY_MAX_SIZE);
+	free_array((void**)argv, ARGUMENT_ARRAY_MAX_SIZE);
 	return false;
 }
 
