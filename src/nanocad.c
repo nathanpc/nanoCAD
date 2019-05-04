@@ -57,7 +57,8 @@ void add_history_line(const char *line);
 
 // Variables.
 variable_t* get_variable(const char *name);
-void variable_strval(const char *name, char strval[ARGUMENT_MAX_SIZE]);
+void variable_strval(const char *name, const uint8_t coord_index,
+					 char strval[ARGUMENT_MAX_SIZE]);
 void set_variable(const char *name, const char *value);
 
 // Parsing.
@@ -128,22 +129,22 @@ void set_variable(const char *name, const char *value) {
 	switch (var.type) {
 	case VARIABLE_FIXED:
 		// Fixed value.
-		var.value = malloc(sizeof(double));
+		var.value = malloc(sizeof(double*));
 		*((double*)var.value) = atof(value);
 		break;
 	case VARIABLE_COORD:
 		// Coordinate.
-		var.value = malloc(sizeof(coord_t));
+		var.value = malloc(sizeof(coord_t*));
 		parse_coordinates((coord_t*)var.value, value, NULL);
 		break;
 	case VARIABLE_OBJECT:
 		// Object.
-		var.value = malloc(sizeof(size_t));
-
 		if (sscanf(value, "%zu", &obj_index) == 1) {
-			*((size_t*)var.value) = obj_index;
+			var.value = malloc(sizeof(objects.list[obj_index]));
+			var.value = &objects.list[obj_index];
 		} else {
-			printf("Couldn't parse object index when assigning to variable.\n");
+			printf("Couldn't parse object index when assigning object to "
+				   "variable.\n");
 			exit(EXIT_FAILURE);
 		}
 		break;
@@ -152,17 +153,12 @@ void set_variable(const char *name, const char *value) {
 		exit(EXIT_FAILURE);
 	}
 
+	
 	// Dynamically add the new variable to the array.
 	variables.list = realloc(variables.list,
 							 sizeof(variable_t) * (variables.count + 1));
 	variables.list[variables.count] = var;
 	variables.count++;
-	
-#ifdef DEBUG
-	char strval[ARGUMENT_MAX_SIZE];
-	variable_strval(name, strval);
-	printf("String representation of '%c%s': %s\n", var.type, var.name, strval);
-#endif
 }
 
 /**
@@ -187,10 +183,12 @@ variable_t* get_variable(const char *name) {
  * Gets a string representation of the variable value to be substituted into
  * a command.
  * 
- * @param name   Variable name to be searched for.
- * @param strval String representation of the variable value.
+ * @param name        Variable name to be searched for.
+ * @param coord_index Coordinate index for object variables.
+ * @param strval      String representation of the variable value.
  */
-void variable_strval(const char *name, char strval[ARGUMENT_MAX_SIZE]) {
+void variable_strval(const char *name, const uint8_t coord_index,
+					 char strval[ARGUMENT_MAX_SIZE]) {
 	// Check if there is any variable with this name.
 	variable_t *var = get_variable(name);
 	if (var == NULL) {
@@ -201,11 +199,28 @@ void variable_strval(const char *name, char strval[ARGUMENT_MAX_SIZE]) {
 	// Output the correct string depending on the variable type.
 	switch (var->type) {
 	case VARIABLE_FIXED:
+		// Fixed Value
 		snprintf(strval, ARGUMENT_MAX_SIZE, "%f", *((double*)var->value));
 		break;
 	case VARIABLE_COORD:
+		// Coordinate
 		snprintf(strval, ARGUMENT_MAX_SIZE, "x%ld;y%ld",
 				 ((coord_t*)var->value)->x, ((coord_t*)var->value)->y);
+		break;
+	case VARIABLE_OBJECT:
+		// Object
+		if (coord_index < ((object_t*)var->value)->coord_count) {
+			// Requested coordinate found.
+			snprintf(strval, ARGUMENT_MAX_SIZE, "x%ld;y%ld",
+					 ((object_t*)var->value)->coord[coord_index].x,
+					 ((object_t*)var->value)->coord[coord_index].y);
+		} else {
+			// Wrong coordinate index.
+			printf("Variable '&%s[%d]' index is greater than the maximum "
+				   "allowed for this type of object: %d\n", name, coord_index,
+				   ((object_t*)var->value)->coord_count);
+			exit(EXIT_FAILURE);
+		}
 		break;
 	default:
 		printf("Invalid variable type '%c' in variable '%s'\n",
@@ -240,16 +255,27 @@ void print_variable_info(const variable_t var) {
 	printf("Name: %s - Value: ", var.name);
 	
 	// Print value according to type.
+	char strval[ARGUMENT_MAX_SIZE];
+	object_t *obj;
 	switch (var.type) {
 	case VARIABLE_FIXED:
-		printf("%f\n", *((double*)var.value));
+		variable_strval(var.name, 0, strval);
+		printf("%f - String: %s\n", *((double*)var.value), strval);
 		break;
 	case VARIABLE_COORD:
-		printf("(%lu, %lu)\n", ((coord_t*)var.value)->x,
-			   ((coord_t*)var.value)->y);
+		variable_strval(var.name, 0, strval);
+		printf("(%lu, %lu) - String: %s\n", ((coord_t*)var.value)->x,
+			   ((coord_t*)var.value)->y, strval);
 		break;
 	case VARIABLE_OBJECT:
-		print_object_info(objects.list[*((size_t*)var.value)]);
+		obj = (object_t*)var.value;
+		print_object_info(*obj);
+
+		printf("String Representation:\n");
+		for (uint8_t i = 0; i < obj->coord_count; i++) {
+			variable_strval(var.name, i, strval);
+			printf("&%s[%d] -> %s\n", var.name, i, strval);
+		}
 		break;
 	default:
 		printf("UNKNOWN\n");
