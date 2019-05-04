@@ -60,6 +60,7 @@ variable_t* get_variable(const char *name);
 void variable_strval(const char *name, const uint8_t coord_index,
 					 char strval[ARGUMENT_MAX_SIZE]);
 void set_variable(const char *name, const char *value);
+int substitute_variables(const char *command, char arg[ARGUMENT_MAX_SIZE]);
 
 // Parsing.
 int parse_line(const char *line, char *command, char **arguments);
@@ -69,7 +70,7 @@ void parse_coordinates(coord_t *coord, const char *arg, const coord_t *base);
 void calc_coordinate(const char oper, const coord_t base, coord_t *coord);
 
 // Objects.
-void create_object(const int type, const char argc, char **argv);
+void create_object(const int type, const int argc, char **argv);
 
 /**
  * Initializes the engine.
@@ -401,7 +402,7 @@ void parse_coordinates(coord_t *coord, const char *arg, const coord_t *base) {
  * @param argc Number of arguments passed by the command.
  * @param argv Aguments passed by the command.
  */
-void create_object(const int type, const char argc, char **argv) {
+void create_object(const int type, const int argc, char **argv) {
 	// Create a new object.
 	object_t obj;
 	obj.type = (uint8_t)type;
@@ -432,6 +433,113 @@ void create_object(const int type, const char argc, char **argv) {
 		print_variable_info(variables.list[variables.count - 1]);
 #endif
 	}
+}
+
+/**
+ * Substitute the variables for their values in a argument.
+ * 
+ * @param  command Command that had the argument passed to this function.
+ * @param  arg     Argument that will be changed.
+ * @return         Number of variables substituted.
+ */
+int substitute_variables(const char *command, char arg[ARGUMENT_MAX_SIZE]) {
+	int sub_count = 0;
+	uint8_t char_count = 0;
+	uint8_t name_ccount = 0;
+	int begin = -1;
+	int end = -1;
+	uint8_t index = 0;
+	char *orig = strdup(arg);
+	char var_name[VARIABLE_MAX_SIZE];
+	var_name[0] = '\0';
+	
+	// Check for commands that shouldn't have variables substituted.
+	if (strcmp("set", command) == 0) {
+		return 0;
+	}
+	
+	// Iterate over the argument until we hit the NULL terminator.
+	for (char_count = 0; orig[char_count] != '\0'; char_count++) {
+		// Get the current character.
+		char c = orig[char_count];
+
+		if (begin < 0) {
+			// Check for a variable beginning.
+			if ((c == '$') || (c == '@') || (c == '&')) {
+				begin = char_count;
+			}
+		} else {
+			// Parsing a variable name.
+			if (((c >= 'a') && (c <= 'z')) ||
+				((c >= 'A') && (c <= 'Z')) ||
+				((c >= '0') && (c <= '9'))) {
+				// Variable name.
+				var_name[name_ccount++] = c;
+				var_name[name_ccount] = '\0';
+			} else if (c == '[') {
+				// Get index and finish this.
+				char_count++;
+				c = orig[char_count];  // Get index character.
+				index = c - '0';       // Convert character to number.
+				
+				// Advance another character to check for ']'.
+				char_count++;
+				c = orig[char_count];
+				if (c == ']') {
+					end = char_count + 1;
+					break;
+				} else {
+					printf("Variable '%s' index ending not found. Instead got "
+						   "a '%c'.\n", var_name, c);
+					exit(EXIT_FAILURE);
+				}
+			} else {
+				// Variable name ended because of invalid name character.
+				end = char_count;
+			}
+		}
+	}
+	
+	// Argument ended with a variable name.
+	if ((begin >= 0) && (end <= 0)) {
+		end = char_count;
+	}
+	
+	// Found a variable to substitute.
+	if (begin >= 0) {
+		// Get variable string representation for substitution.
+		char strval[ARGUMENT_MAX_SIZE];
+		variable_strval(var_name, index, strval);
+
+#ifdef DEBUG
+		printf("Substituting variable in string:\n%s\n", arg);
+		printf("%*s^%*s^\t %s -> %s\n", begin, "", end - begin - 1, "",
+			   var_name, strval);
+#endif
+		
+		// Substitute the variable into the argument.
+		arg[begin] = '\0';
+		strcat(arg, strval);
+		char_count = strlen(arg);
+		for (uint8_t i = end; i < ARGUMENT_MAX_SIZE; i++) {
+			arg[char_count++] = orig[i];
+			
+			if (orig[i] == '\0') {
+				break;
+			}
+		}
+		
+#ifdef DEBUG
+		printf("%s\n", arg);
+#endif
+		
+		// Clean up our mess if we had to substitute a variable.
+		sub_count++;
+		free(orig);
+	}
+	
+	// TODO: Substitute multiple variables.
+	return sub_count;
 }
 
 /**
@@ -677,6 +785,7 @@ int parse_line(const char *line, char *command, char **arguments) {
 			if (c == ',') {
 				// Comma found, so the argument has ended.
 				chomp(cur_arg);
+				substitute_variables(command, cur_arg);
 				arguments[argc - 1] = strdup(cur_arg);
 				cur_cpos = 0;
 				cur_arg[0] = '\0';
@@ -690,8 +799,10 @@ int parse_line(const char *line, char *command, char **arguments) {
 			} else if (c == '=') {
 				// We need to make sure we'll store this into a variable.
 				chomp(cur_arg);
+				substitute_variables(command, cur_arg);
 				arguments[argc - 1] = strdup(cur_arg);
 				cur_cpos = 0;
+				cur_arg[0] = '\0';
 				stage = PARSING_SET_OBJVAR;
 			} else {
 				// Increment the argument counter if at start of an argument.
@@ -744,6 +855,11 @@ int parse_line(const char *line, char *command, char **arguments) {
 	// Store the last argument parsed.
 	if (argc > 0) {
 		chomp(cur_arg);
+
+		if (stage == PARSING_ARGUMENTS) {
+			substitute_variables(command, cur_arg);
+		}
+
 		arguments[argc - 1] = strdup(cur_arg);
 	}
 

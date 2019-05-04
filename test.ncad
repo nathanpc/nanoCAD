@@ -28,7 +28,13 @@ line x190;y140, x110;y140
 line x110;y140, h-20
 line x110;y130, x190;y130
 
-# Variable tests.
+# Variable setting tests.
 set $val, 100                # Sample value variable.
 set @coord, x100;y50         # Sample coordinate variable.
 line x200;y200, w200 = &obj  # Sample object variable.
+
+# Variable usage tests.
+line x300;y300, w$val        # Single fixed number substitution.
+line @coord, h300            # Single coordinate substitution.
+line &obj[1], h-300          # Single object coordinate substitution.
+
