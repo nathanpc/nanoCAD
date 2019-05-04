@@ -1,6 +1,7 @@
 PROJECT = nanocad
 CC = clang
 RM = rm -f
+GDB = gdb
 CFLAGS = -Wall -std=gnu99 $(shell sdl2-config --cflags)
 LDFLAGS = -lreadline $(shell sdl2-config --libs)
 OBJECTS = src/app.o src/nanocad.o src/graphics.o
@@ -15,7 +16,7 @@ $(PROJECT): $(OBJECTS)
 
 debug: CFLAGS += -g3 -DDEBUG
 debug: $(PROJECT)
-	./$(PROJECT) test.ncad
+	$(GDB)
 
 memcheck: CFLAGS += -g3 -DDEBUG -DMEMCHECK
 memcheck: $(PROJECT)
