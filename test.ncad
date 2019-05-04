@@ -37,4 +37,6 @@ line x200;y200, w200 = &obj  # Sample object variable.
 line x300;y300, w$val        # Single fixed number substitution.
 line @coord, h300            # Single coordinate substitution.
 line &obj[1], h-300          # Single object coordinate substitution.
+line @coord, h$val           # Multiple variable substitution.
+line &obj[1], @coord         # More multiple variable substitution.
 

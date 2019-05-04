@@ -538,7 +538,11 @@ int substitute_variables(const char *command, char arg[ARGUMENT_MAX_SIZE]) {
 		free(orig);
 	}
 	
-	// TODO: Substitute multiple variables.
+	// Substitute multiple variables if we had any matches this time.
+	if (sub_count > 0) {
+		sub_count += substitute_variables(command, arg);  // Yay, recursion!
+	}
+
 	return sub_count;
 }
 
