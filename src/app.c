@@ -44,11 +44,6 @@ int main(int argc, char **argv) {
 		return EXIT_FAILURE;
 	}
 	
-#ifdef DEBUG
-	// Print the command line history.
-	print_line_history();
-#endif
-
 #ifndef MEMCHECK
 	// Initialize the graphics.
 	if (graphics_init(600, 450)) {

@@ -625,6 +625,9 @@ bool parse_command(const char *line) {
 #ifdef DEBUG
 			print_variable_info(variables.list[variables.count - 1]);
 #endif
+		} else if (strcmp("list", command) == 0) {
+			// List lines command.
+			print_line_history();
 		} else {
 			// Not a known command.
 			printf("Unknown command.\n");
@@ -816,8 +819,8 @@ int parse_line(const char *line, char *command, char **arguments) {
 			} else {
 				if ((cur_cpos + 1) < COMMAND_MAX_SIZE) {
 					// Append characters to the command string.
-					command[cur_cpos] = c;
-					cur_cpos++;
+					command[cur_cpos++] = c;
+					command[cur_cpos] = '\0';
 				} else {
 					printf("ERROR: Command maximum character limit "
 						   "exceeded.\n");
@@ -891,9 +894,13 @@ int parse_line(const char *line, char *command, char **arguments) {
 		}
 	}
 
-	// Leave the object variable as a argument to be dealt with later.
+	// Look for unfinished stages.
 	if (stage == PARSING_SET_OBJVAR) {
+		// Leave the object variable as a argument to be dealt with later.
 		argc++;
+	} else if (stage == PARSING_COMMAND) {
+		// Looks like we don't have any arguments.
+		argc = 0;
 	}
 
 	// Store the last argument parsed.

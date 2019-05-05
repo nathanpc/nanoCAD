@@ -45,3 +45,6 @@ line &^[0], h100             # Use the last object beginning coordinate.
 line &^[1], w100             # Use the last object second coordinate.
 line &^[1], h-100 = &oie     # Using a variable and setting another.
 
+# Debugging commands.
+list
+
