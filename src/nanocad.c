@@ -40,9 +40,17 @@ variable_t         last_object;
 
 // Command type definitions.
 #define VALID_OBJECTS_SIZE 3
-char valid_objects[VALID_OBJECTS_SIZE][COMMAND_MAX_SIZE] = { "line",
-															 "rect",
-															 "circle" };
+char valid_objects[VALID_OBJECTS_SIZE][COMMAND_MAX_SIZE] = { 
+	"line",
+	"rect",
+	"circle"
+};
+
+// Commands that shouldn't have variables substituted in their arguments.
+#define NOVARSUBS_COMMAND_SIZE 1
+char nosubstitute_commands[NOVARSUBS_COMMAND_SIZE][ARGUMENT_MAX_SIZE] = {
+	"inspect"
+};
 
 /**
  * Internal functions.
@@ -51,6 +59,7 @@ char valid_objects[VALID_OBJECTS_SIZE][COMMAND_MAX_SIZE] = { "line",
 void free_array(void **arr, const size_t len);
 void chomp(char *str);
 int is_obj_command(const char *command);
+bool is_no_substitute_command(const char *command);
 long to_base_unit(const char *str);
 
 // History.
@@ -493,6 +502,11 @@ int substitute_variables(const char *command, char arg[ARGUMENT_MAX_SIZE]) {
 	char var_name[VARIABLE_MAX_SIZE];
 	var_name[0] = '\0';
 	
+	// Check if it is a no substitution command.
+	if (is_no_substitute_command(command)) {
+		return 0;
+	}
+	
 	// Check for commands that shouldn't have variables substituted.
 	if (strcmp("set", command) == 0) {
 		return 0;
@@ -628,6 +642,24 @@ bool parse_command(const char *line) {
 		} else if (strcmp("list", command) == 0) {
 			// List lines command.
 			print_line_history();
+		} else if (strcmp("inspect", command) == 0) {
+			// Inspect variable command.
+			for (size_t i = 1;; i++) {
+				// Drop the variable type symbol.
+				argv[0][i - 1] = argv[0][i];
+				
+				if (argv[0][i] == '\0') {
+					break;
+				}
+			}
+			
+			variable_t *var = get_variable(argv[0]);
+			if (var == NULL) {
+				printf("Variable '%s' not found.\n", argv[0]);
+				return false;
+			} else {
+				print_variable_info(*var);
+			}
 		} else {
 			// Not a known command.
 			printf("Unknown command '%s'.\n", command);
@@ -639,6 +671,7 @@ bool parse_command(const char *line) {
 			free(argv[i]);
 		}
 
+		// Add line to the history and return.
 		add_history_line(line);
 		return true;
 	}
@@ -742,6 +775,23 @@ int is_obj_command(const char *command) {
 	}
 
 	return -1;
+}
+
+/**
+ * Checks if a command is of a type that shouldn't have its arguments variables
+ * substituted by their values. This is mostly used for debugging commands.
+ * 
+ * @param  command Command name that should be checked.
+ * @return         TRUE if variables in arguments shouldn't substituted.
+ */
+bool is_no_substitute_command(const char *command) {
+	for (uint8_t i = 0; i < NOVARSUBS_COMMAND_SIZE; i++) {
+		if (strcmp(command, nosubstitute_commands[i]) == 0) {
+			return true;
+		}
+	}
+	
+	return false;
 }
 
 /**

@@ -46,5 +46,9 @@ line &^[1], w100             # Use the last object second coordinate.
 line &^[1], h-100 = &oie     # Using a variable and setting another.
 
 # Debugging commands.
+inspect $val
+inspect @coord
+inspect &obj
+inspect &^
 list
 
