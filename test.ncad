@@ -40,3 +40,9 @@ line &obj[1], h-300          # Single object coordinate substitution.
 line @coord, h$val           # Multiple variable substitution.
 line &obj[1], @coord         # More multiple variable substitution.
 
+# Last object variable usage test.
+line x600;y100, w100
+line &^[0], h100
+line &^[1], w100
+line &^[1], h-100
+

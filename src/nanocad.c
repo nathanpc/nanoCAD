@@ -36,6 +36,7 @@
 object_container   objects;
 variable_container variables;
 history_container  history;
+variable_t         last_object;
 
 // Command type definitions.
 #define VALID_OBJECTS_SIZE 3
@@ -80,6 +81,11 @@ void nanocad_init() {
 	objects.count = 0;
 	variables.count = 0;
 	history.count = 0;
+	
+	// Initialize last object.
+	last_object.type = '&';
+	last_object.name = NULL;
+	last_object.value = NULL;
 }
 
 /**
@@ -100,6 +106,10 @@ void nanocad_destroy() {
 		free(objects.list[i].coord);
 	}
 	
+	// Free up the last object variable.
+	free(last_object.name);
+	free(last_object.value);
+	
 	// Free all of the containers.
 	free(variables.list);
 	free(objects.list);
@@ -117,13 +127,17 @@ void set_variable(const char *name, const char *value) {
 	variable_t var;
 	var.type = *name++;
 	var.name = strdup(name);
-
+	
+	// Check if the variable already exists.
 	variable_t *old_var = get_variable(name);
 	if (old_var != NULL) {
-		// TODO: Check if already exists, if so, override.
-		printf("Variable '%s' already exists. Can't set a new value\n", name);
-		printf("This will be implemented in the future.\n");
-		exit(EXIT_FAILURE);
+		// Ignore find if it is the last object variable.
+		if (old_var->name[0] != '^') {
+			// TODO: Check if already exists, if so, override.
+			printf("Variable '%s' already exists. Can't set a new value\n", name);
+			printf("This will be implemented in the future.\n");
+			exit(EXIT_FAILURE);
+		}
 	}
 	
 	// Parse variable value according to type.
@@ -141,8 +155,15 @@ void set_variable(const char *name, const char *value) {
 	case VARIABLE_OBJECT:
 		// Object.
 		if (sscanf(value, "%zu", &obj_index) == 1) {
-			var.value = malloc(sizeof(objects.list[obj_index]));
-			var.value = &objects.list[obj_index];
+			if ((name[0] == '^') && (name[1] == '\0')) {
+				// Last object variable setting.
+				last_object.value = malloc(sizeof(objects.list[obj_index]));
+				last_object.value = &objects.list[obj_index];
+			} else {
+				// Normal object variable setting.
+				var.value = malloc(sizeof(objects.list[obj_index]));
+				var.value = &objects.list[obj_index];
+			}
 		} else {
 			printf("Couldn't parse object index when assigning object to "
 				   "variable.\n");
@@ -154,6 +175,14 @@ void set_variable(const char *name, const char *value) {
 		exit(EXIT_FAILURE);
 	}
 
+	// Check if it is a last object type variable set.
+	if ((name[0] == '^') && (name[1] == '\0')) {
+		if (last_object.name == NULL) {
+			last_object.name = strdup("^");
+		}
+		
+		return;
+	}
 	
 	// Dynamically add the new variable to the array.
 	variables.list = realloc(variables.list,
@@ -169,6 +198,16 @@ void set_variable(const char *name, const char *value) {
  * @return      Pointer to the variable structure or NULL if it wasn't found.
  */
 variable_t* get_variable(const char *name) {
+	// Check if we are looking for the last object variable.
+	if ((name[0] == '^') && (name[1] == '\0')) {
+		// Check if we have a valid last object.
+		if (last_object.name != NULL) {
+			return &last_object;
+		}
+		
+		return NULL;
+	}
+	
 	// Search through the variables.
 	for (size_t i = 0; i < variables.count; i++) {
 		// If the names are the same then return a pointer to the variable.
@@ -422,13 +461,14 @@ void create_object(const int type, const int argc, char **argv) {
 						   sizeof(object_t) * (objects.count + 1));
 	objects.list[objects.count++] = obj;
 	
+	// Pass the object index as a string to the variable setting function.
+	char str_idx[VARIABLE_MAX_SIZE];
+	snprintf(str_idx, VARIABLE_MAX_SIZE, "%lu", objects.count - 1);
+	set_variable("&^", str_idx);  // Set the last object variable.
+		
 	// Check if we need to store this object into a variable.
 	if (argv[argc - 1][0] == '&') {
-		// Pass the object index as a string to be compliant with the function.
-		char str_idx[VARIABLE_MAX_SIZE];
-		snprintf(str_idx, VARIABLE_MAX_SIZE, "%lu", objects.count - 1);
 		set_variable(argv[argc - 1], str_idx);
-		
 #ifdef DEBUG
 		print_variable_info(variables.list[variables.count - 1]);
 #endif
@@ -472,7 +512,7 @@ int substitute_variables(const char *command, char arg[ARGUMENT_MAX_SIZE]) {
 			// Parsing a variable name.
 			if (((c >= 'a') && (c <= 'z')) ||
 				((c >= 'A') && (c <= 'Z')) ||
-				((c >= '0') && (c <= '9'))) {
+				((c >= '0') && (c <= '9')) || (c == '^')) {
 				// Variable name.
 				var_name[name_ccount++] = c;
 				var_name[name_ccount] = '\0';
