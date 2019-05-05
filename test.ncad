@@ -41,8 +41,8 @@ line @coord, h$val           # Multiple variable substitution.
 line &obj[1], @coord         # More multiple variable substitution.
 
 # Last object variable usage test.
-line x600;y100, w100
-line &^[0], h100
-line &^[1], w100
+line x600;y100, w100         # Set the first last object of this group.
+line &^[0], h100             # Use the last object beginning coordinate.
+line &^[1], w100             # Use the last object second coordinate.
 line &^[1], h-100
 

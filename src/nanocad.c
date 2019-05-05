@@ -553,7 +553,7 @@ int substitute_variables(const char *command, char arg[ARGUMENT_MAX_SIZE]) {
 
 #ifdef DEBUG
 		printf("Substituting variable in string:\n%s\n", arg);
-		printf("%*s^%*s^\t %s -> %s\n", begin, "", end - begin - 1, "",
+		printf("%*s^%*s^\t '%s' -> '%s'\n", begin, "", end - begin - 1, "",
 			   var_name, strval);
 #endif
 		
