@@ -4,7 +4,6 @@
 # Author: Nathan Campos <nathanpc@dreamintech.net>
 
 # Drawing a bear as an example.
-
 # Head
 line x100;y100, w100
 line x200;y100, h100
@@ -30,19 +29,19 @@ line x110;y130, x190;y130
 
 # Variable setting tests.
 set $val, 100                # Sample value variable.
-set @coord, x100;y50         # Sample coordinate variable.
-line x200;y200, w200 = &obj  # Sample object variable.
+set @coord, x700;y300        # Sample coordinate variable.
+line x700;y300, w100 = &obj  # Sample object variable.
 
 # Variable usage tests.
-line x300;y300, w$val        # Single fixed number substitution.
-line @coord, h300            # Single coordinate substitution.
-line &obj[1], h-300          # Single object coordinate substitution.
-line @coord, h$val           # Multiple variable substitution.
+line x700;y300, h$val        # Single fixed number substitution.
+line @coord, x800;y400       # Single coordinate substitution.
+line &obj[1], h100           # Single object coordinate substitution.
+line @coord, h-$val          # Multiple variable substitution.
 line &obj[1], @coord         # More multiple variable substitution.
 
 # Last object variable usage test.
 line x600;y100, w100         # Set the first last object of this group.
 line &^[0], h100             # Use the last object beginning coordinate.
 line &^[1], w100             # Use the last object second coordinate.
-line &^[1], h-100
+line &^[1], h-100 = &oie     # Using a variable and setting another.
 
