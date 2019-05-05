@@ -630,17 +630,19 @@ bool parse_command(const char *line) {
 			print_line_history();
 		} else {
 			// Not a known command.
-			printf("Unknown command.\n");
-			free_array((void**)argv, ARGUMENT_ARRAY_MAX_SIZE);
+			printf("Unknown command '%s'.\n", command);
 			return false;
+		}
+		
+		// Cleaning up the arguments.
+		for (uint8_t i = 0; i < argc; i++) {
+			free(argv[i]);
 		}
 
 		add_history_line(line);
-		//free_array(argv, ARGUMENT_ARRAY_MAX_SIZE);
 		return true;
 	}
 
-	free_array((void**)argv, ARGUMENT_ARRAY_MAX_SIZE);
 	return false;
 }
 
