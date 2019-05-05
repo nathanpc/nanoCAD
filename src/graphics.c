@@ -142,7 +142,7 @@ void graphics_eventloop() {
 
 	while (running && SDL_WaitEvent(&event)) {
 		// Set the background color and clear the window.
-		SDL_SetRenderDrawColor(renderer, 240, 240, 240, 255);
+		SDL_SetRenderDrawColor(renderer, 33, 40, 48, 255);
 		SDL_RenderClear(renderer);
 
 		switch (event.type) {
