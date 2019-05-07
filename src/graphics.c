@@ -125,7 +125,6 @@ int draw_line(const coord_t start, const coord_t end) {
 	int x2 = origin.x + end.x;
 	int y2 = origin.y - end.y;
 
-	// TODO: Change color by layer.
 	SDL_SetRenderDrawColor(renderer, 69, 69, 69, 255);
 	return SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
 }

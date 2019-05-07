@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <math.h>
 
 // Line parsing stage definitions.
 #define PARSING_START      0
@@ -36,6 +37,7 @@
 object_container   objects;
 variable_container variables;
 history_container  history;
+layer_container    layers;
 variable_t         last_object;
 
 // Command type definitions.
@@ -61,6 +63,7 @@ void chomp(char *str);
 int is_obj_command(const char *command);
 bool is_no_substitute_command(const char *command);
 long to_base_unit(const char *str);
+uint8_t hex_to_dec(const char *hex);
 
 // History.
 void add_history_line(const char *line);
@@ -72,7 +75,11 @@ void variable_strval(const char *name, const uint8_t coord_index,
 void set_variable(const char *name, const char *value);
 int substitute_variables(const char *command, char arg[ARGUMENT_MAX_SIZE]);
 
+// Layers.
+void set_layer(const uint8_t num, const char *name, const char *color);
+
 // Parsing.
+void parse_rgb_color(const char *str, rgba_color_t *color);
 int parse_line(const char *line, char *command, char **arguments);
 void parse_coordinates(coord_t *coord, const char *arg, const coord_t *base);
 
@@ -90,11 +97,15 @@ void nanocad_init() {
 	objects.count = 0;
 	variables.count = 0;
 	history.count = 0;
+	layers.count = 0;
 	
 	// Initialize last object.
 	last_object.type = '&';
 	last_object.name = NULL;
 	last_object.value = NULL;
+	
+	// Create the default 0 layer.
+	set_layer(0, "Default", "000000");
 }
 
 /**
@@ -115,6 +126,11 @@ void nanocad_destroy() {
 		free(objects.list[i].coord);
 	}
 	
+	// Free all of the layers.
+	for (size_t i = 0; i < layers.count; i++) {
+		free(layers.list[i].name);
+	}
+	
 	// Free up the last object variable.
 	free(last_object.name);
 	free(last_object.value);
@@ -123,6 +139,60 @@ void nanocad_destroy() {
 	free(variables.list);
 	free(objects.list);
 	free(history.lines);
+	free(layers.list);
+}
+
+/**
+ * Adds a new layer to the layer container.
+ * 
+ * @param num   Layer number.
+ * @param name  Layer name.
+ * @param color RGB hexadecimal color string.
+ */
+void set_layer(const uint8_t num, const char *name, const char *color) {
+	layer_t layer;
+	
+	// Check if the user is trying to mess with the 0 layer.
+	if ((num == 0) && (layers.count > 0)) {
+		printf("Can't alter any parameters of the 0 layer. The 0 layer is "
+			   "read-only.\n");
+		exit(EXIT_FAILURE);
+	}
+	
+	// TODO: Check if layer number already exists.
+
+	// Populate the layer object.
+	layer.num = num;
+	layer.name = strdup(name);
+	parse_rgb_color(color, &layer.color);
+
+	// Dynamically add the new layer to the array.
+	layers.list = realloc(layers.list, sizeof(layer_t) * (layers.count + 1));
+	layers.list[layers.count++] = layer;
+}
+
+/**
+ * Parses a RGB(A) color string and stores it into a color structure pointer.
+ * 
+ * @param str   RGB(A) color string.
+ * @param color Pointer to a color structure.
+ */
+void parse_rgb_color(const char *str, rgba_color_t *color) {
+	// Separate each string color.
+	char red[3] = { str[0], str[1], '\0' };
+	char green[3] = { str[2], str[3], '\0' };
+	char blue[3] = { str[4], str[5], '\0' };
+	
+	// Convert from hexadecimal to decimal.
+	color->alpha = 255;
+	color->r = hex_to_dec(red);
+	color->g = hex_to_dec(green);
+	color->b = hex_to_dec(blue);
+	
+#ifdef DEBUG
+	printf("Color string: %s - R(0x%s) G(0x%s) B(0x%s) - RGBA(%d, %d, %d, %d)\n",
+		   str, red, green, blue, color->r, color->g, color->b, color->alpha);
+#endif
 }
 
 /**
@@ -196,8 +266,7 @@ void set_variable(const char *name, const char *value) {
 	// Dynamically add the new variable to the array.
 	variables.list = realloc(variables.list,
 							 sizeof(variable_t) * (variables.count + 1));
-	variables.list[variables.count] = var;
-	variables.count++;
+	variables.list[variables.count++] = var;
 }
 
 /**
@@ -639,6 +708,9 @@ bool parse_command(const char *line) {
 #ifdef DEBUG
 			print_variable_info(variables.list[variables.count - 1]);
 #endif
+		} else if (strcmp("layer", command) == 0) {
+			// Set layer attributes command.
+			set_layer((uint8_t)strtoul(argv[0], NULL, 10), argv[1], argv[2]);
 		} else if (strcmp("list", command) == 0) {
 			// List lines command.
 			print_line_history();
@@ -1063,3 +1135,37 @@ void free_array(void **arr, const size_t len) {
 		free(arr[i]);
 	}
 }
+
+/**
+ * Converts a hexadecimal number as string to a decimal 8-bit unsigned integer.
+ * 
+ * @param  hex Hexadecimal number as a string.
+ * @return     8-bit unsigned integer.
+ */
+uint8_t hex_to_dec(const char *hex) {
+	uint8_t dec = 0;
+	uint8_t power = 0;
+	
+	for (int8_t digit = 1; digit >= 0; digit--) {
+		if ((hex[digit] >= '0') && (hex[digit] <= '9')) {
+			// Numbers.
+			dec += (hex[digit] - '0') * (uint8_t)pow(16, power);
+		} else if ((hex[digit] >= 'A') && (hex[digit] <= 'F')) {
+			// Uppercase letters.
+			dec += (hex[digit] - 'A' + 10) * (uint8_t)pow(16, power);
+		} else if ((hex[digit] >= 'a') && (hex[digit] <= 'f')) {
+			// Lowercase letters.
+			dec += (hex[digit] - 'a' + 10) * (uint8_t)pow(16, power);
+		} else {
+			// Invalid character.
+			printf("Invalid hexadecimal character '%c' in '%s'.\n",
+				   hex[digit], hex);
+			exit(EXIT_FAILURE);
+		}
+		
+		power++;
+	}
+	
+	return dec;
+}
+

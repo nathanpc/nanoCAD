@@ -24,6 +24,14 @@
 #define TYPE_RECT   2
 #define TYPE_CIRCLE 3
 
+// RGBA color structure.
+typedef struct {
+	uint8_t r;
+	uint8_t g;
+	uint8_t b;
+	uint8_t alpha;
+} rgba_color_t;
+
 // Coordinate structure.
 typedef struct {
 	long x;
@@ -33,6 +41,7 @@ typedef struct {
 // Object structure.
 typedef struct {
 	uint8_t  type;
+	uint8_t  layer;
 	uint8_t  coord_count;
 	coord_t *coord;
 } object_t;
@@ -61,6 +70,19 @@ typedef struct {
 	size_t   count;
 	char   **lines;
 } history_container;
+
+// Layer structure.
+typedef struct {
+	uint8_t       num;
+	char         *name;
+	rgba_color_t  color;
+} layer_t;
+
+// Layer container.
+typedef struct {
+	size_t   count;
+	layer_t *list;
+} layer_container;
 
 // Initialization and clean-up.
 void nanocad_init();
