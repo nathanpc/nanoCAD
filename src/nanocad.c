@@ -105,7 +105,7 @@ void nanocad_init() {
 	last_object.value = NULL;
 	
 	// Create the default 0 layer.
-	set_layer(0, "Default", "000000");
+	set_layer(0, "Default", "f9f9f9");
 }
 
 /**
@@ -171,8 +171,24 @@ void set_layer(const uint8_t num, const char *name, const char *color) {
 	layers.list[layers.count++] = layer;
 	
 #ifdef DEBUG
-	print_layer_info(layers.list[layers.count - 1]);
+	print_layer_info(*get_layer(num));
 #endif
+}
+
+/**
+ * Gets a layer object based on its layer number.
+ * 
+ * @param  num Layer number.
+ * @return     Layer object pointer or NULL if a layer wasn't found.
+ */
+layer_t* get_layer(const uint8_t num) {
+	for (uint8_t i = 0; i < layers.count; i++) {
+		if (layers.list[i].num == num) {
+			return &layers.list[i];
+		}
+	}
+	
+	return NULL;
 }
 
 /**
@@ -539,7 +555,8 @@ void create_object(const int type, const int argc, char **argv) {
 	// Create a new object.
 	object_t obj;
 	obj.type = (uint8_t)type;
-
+	obj.layer_num = 0;
+	
 	// Allocate the correct amount of memory for each type of object.
 	switch (type) {
 	case TYPE_LINE:
@@ -559,13 +576,33 @@ void create_object(const int type, const int argc, char **argv) {
 	char str_idx[VARIABLE_MAX_SIZE];
 	snprintf(str_idx, VARIABLE_MAX_SIZE, "%lu", objects.count - 1);
 	set_variable("&^", str_idx);  // Set the last object variable.
-		
+	
+	// TODO: Find a way to check for variable and layers and optional arguments.
+	
 	// Check if we need to store this object into a variable.
-	if (argv[argc - 1][0] == '&') {
-		set_variable(argv[argc - 1], str_idx);
+	int last_index = argc - 1;
+	if (argv[last_index][0] == '&') {
+		set_variable(argv[last_index], str_idx);
+		last_index--;  // Last index won't be the variable name anymore.
+		
 #ifdef DEBUG
 		print_variable_info(variables.list[variables.count - 1]);
 #endif
+	}
+	
+	// Check for optional arguments.
+	if (argv[last_index][0] == 'l') {
+		// We have a layer setting.
+		char str_num[4];
+		for (uint8_t i = 0; i < 4; i++) {
+			str_num[i] = argv[last_index][i + 1];
+			
+			if (argv[last_index][i + 1] == '\0') {
+				break;
+			}
+		}
+		
+		objects.list[objects.count - 1].layer_num = (uint8_t)atoi(str_num);
 	}
 }
 
@@ -741,6 +778,8 @@ bool parse_command(const char *line) {
 				}
 			}
 			
+			// TODO: Implement a way to inspect layers.
+			
 			variable_t *var = get_variable(argv[0]);
 			if (var == NULL) {
 				printf("Variable '%s' not found.\n", argv[0]);
@@ -895,6 +934,8 @@ void print_object_info(const object_t object) {
 	for (uint8_t i = 0; i < object.coord_count; i++) {
 		printf("    %d. (%ld, %ld)\n", i, object.coord[i].x, object.coord[i].y);
 	}
+	
+	print_layer_info(*get_layer(object.layer_num));
 }
 
 /**
@@ -1126,7 +1167,7 @@ void chomp(char *str) {
  * @param container Pointer that will be pointing to the internal object
  * container.
  */
-void get_container(object_container *container) {
+void get_object_container(object_container *container) {
 	*container = objects;
 }
 

@@ -27,7 +27,7 @@ bool is_key_down(const SDL_Scancode key);
 void set_origin(const int x, const int y);
 void reset_origin();
 void zoom(const int percentage);
-int draw_line(const coord_t start, const coord_t end);
+int draw_line(const coord_t start, const coord_t end, const uint8_t layer_num);
 void graphics_render();
 void graphics_eventloop();
 
@@ -87,7 +87,7 @@ void graphics_clean() {
 void graphics_render() {
 	// Get the object container from the engine.
 	object_container objects;
-	get_container(&objects);
+	get_object_container(&objects);
 
 	// Loop through each object and render it.
 	for (size_t i = 0; i < objects.count; i++) {
@@ -97,7 +97,7 @@ void graphics_render() {
 		// Do something different according to each type of object.
 		switch (obj.type) {
 		case TYPE_LINE:
-			ret = draw_line(obj.coord[0], obj.coord[1]);
+			ret = draw_line(obj.coord[0], obj.coord[1], obj.layer_num);
 			break;
 		default:
 			printf("Invalid object type.\n");
@@ -114,18 +114,27 @@ void graphics_render() {
 /**
  * Draws a line between two points.
  *
- * @param  start Starting point for the line.
+ * @param  start Starting point for a line.
  * @param  end   Ending point.
  * @return       SDL_RenderDrawLine return value.
  */
-int draw_line(const coord_t start, const coord_t end) {
+int draw_line(const coord_t start, const coord_t end, const uint8_t layer_num) {
 	// Transpose the coordinates to our own origin.
 	int x1 = origin.x + start.x;
 	int y1 = origin.y - start.y;
 	int x2 = origin.x + end.x;
 	int y2 = origin.y - end.y;
-
-	SDL_SetRenderDrawColor(renderer, 69, 69, 69, 255);
+	
+	// Get the line's layer.
+	layer_t *layer = get_layer(layer_num);
+	if (layer == NULL) {
+		printf("Warning: Invalid layer '%d' to be rendered, falling back to "
+			   "layer 0.\n", layer_num);
+		layer = get_layer(0);
+	}
+	
+	SDL_SetRenderDrawColor(renderer, layer->color.r, layer->color.g,
+						   layer->color.b, layer->color.alpha);
 	return SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
 }
 

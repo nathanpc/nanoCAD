@@ -41,7 +41,7 @@ typedef struct {
 // Object structure.
 typedef struct {
 	uint8_t  type;
-	uint8_t  layer;
+	uint8_t  layer_num;
 	uint8_t  coord_count;
 	coord_t *coord;
 } object_t;
@@ -92,9 +92,12 @@ void nanocad_destroy();
 bool parse_command(const char *line);
 bool parse_file(const char *filename);
 
+// Layer functions.
+layer_t* get_layer(const uint8_t num);
+
 // Object manipulation.
 object_t get_object(const size_t i);
-void get_container(object_container *container);
+void get_object_container(object_container *container);
 
 // Debug functions.
 void print_object_info(const object_t object);
