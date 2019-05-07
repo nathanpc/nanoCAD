@@ -723,6 +723,56 @@ int substitute_variables(const char *command, char arg[ARGUMENT_MAX_SIZE]) {
 }
 
 /**
+ * Prints some debug information about a variable or layer.
+ * Warning: This function alters the contents of "*thing".
+ * 
+ * @param  thing Thing to be inspected in string form.
+ * @return       TRUE if the inspecting was successful.
+ */
+bool inspect(char *thing) {
+	char type = thing[0];
+
+	// Drop the thing's type symbol.
+	for (size_t i = 1; ; i++) {
+		thing[i - 1] = thing[i];
+		
+		if (thing[i] == '\0') {
+			break;
+		}
+	}
+	
+	// Detect which kind of thing we are dealing with.
+	if ((type == '$') || (type == '@') || (type == '&')) {
+		// Variable
+		variable_t *var = get_variable(thing);
+		
+		if (var == NULL) {
+			printf("Variable '%c%s' not found.\n", type, thing);
+			return false;
+		} else {
+			print_variable_info(*var);
+		}
+	} else if (type == 'l') {
+		// Layer
+		uint8_t layer_num = (uint8_t)atoi(thing);
+		layer_t *layer = get_layer(layer_num);
+		
+		if (layer == NULL) {
+			printf("Layer '%d' not found.\n", layer_num);
+			return false;
+		} else {
+			print_layer_info(*layer);
+		}
+	} else {
+		// Invalid
+		printf("Invalid type of thing to inspect: '%c'.\n", type);
+		return false;
+	}
+	
+	return true;
+}
+
+/**
  * Parses a command and executes it.
  *
  * @param  line A command line without the newline character at the end.
@@ -768,24 +818,9 @@ bool parse_command(const char *line) {
 			// List lines command.
 			print_line_history();
 		} else if (strcmp("inspect", command) == 0) {
-			// Inspect variable command.
-			for (size_t i = 1;; i++) {
-				// Drop the variable type symbol.
-				argv[0][i - 1] = argv[0][i];
-				
-				if (argv[0][i] == '\0') {
-					break;
-				}
-			}
-			
-			// TODO: Implement a way to inspect layers.
-			
-			variable_t *var = get_variable(argv[0]);
-			if (var == NULL) {
-				printf("Variable '%s' not found.\n", argv[0]);
+			// Inspect command.
+			if (!inspect(argv[0])) {
 				return false;
-			} else {
-				print_variable_info(*var);
 			}
 		} else {
 			// Not a known command.

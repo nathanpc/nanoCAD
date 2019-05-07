@@ -55,7 +55,7 @@ list
 # Testing layers.
 layer 1, Test1, 33ab9c
 layer 2, Test 2, aa12cc
-
 line x650;y450, w100, l1
 line x650;y500, w100, l2
+inspect l2
 
