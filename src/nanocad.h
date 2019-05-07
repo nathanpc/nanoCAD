@@ -99,6 +99,7 @@ void get_container(object_container *container);
 // Debug functions.
 void print_object_info(const object_t object);
 void print_variable_info(const variable_t var);
+void print_layer_info(const layer_t layer);
 void print_line_history();
 
 #endif

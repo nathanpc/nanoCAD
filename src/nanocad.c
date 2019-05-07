@@ -169,6 +169,10 @@ void set_layer(const uint8_t num, const char *name, const char *color) {
 	// Dynamically add the new layer to the array.
 	layers.list = realloc(layers.list, sizeof(layer_t) * (layers.count + 1));
 	layers.list[layers.count++] = layer;
+	
+#ifdef DEBUG
+	print_layer_info(layers.list[layers.count - 1]);
+#endif
 }
 
 /**
@@ -193,6 +197,18 @@ void parse_rgb_color(const char *str, rgba_color_t *color) {
 	printf("Color string: %s - R(0x%s) G(0x%s) B(0x%s) - RGBA(%d, %d, %d, %d)\n",
 		   str, red, green, blue, color->r, color->g, color->b, color->alpha);
 #endif
+}
+
+/**
+ * Prints some debug information about the layer.
+ * 
+ * @param layer Layer object to inspect.
+ */
+void print_layer_info(const layer_t layer) {
+	printf("Layer %d '%s':\n", layer.num, layer.name);
+	printf("    Color: RGB(%d, %d, %d)\n", layer.color.r, layer.color.g,
+		   layer.color.b);
+	printf("    Alpha: %d\n", layer.color.alpha);
 }
 
 /**
