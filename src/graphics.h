@@ -10,6 +10,9 @@
 
 #include <stdbool.h>
 
+// Constants.
+#define DIMENSION_TEXT_MAX_SIZE 20
+
 // Initialization and destruction.
 bool graphics_init(const int width, const int height);
 void graphics_clean();

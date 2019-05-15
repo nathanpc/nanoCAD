@@ -3,7 +3,7 @@ CC = clang
 RM = rm -f
 GDB = gdb
 CFLAGS = -Wall -std=gnu99 $(shell sdl2-config --cflags)
-LDFLAGS = -lm -lreadline $(shell sdl2-config --libs)
+LDFLAGS = -lm -lreadline $(shell sdl2-config --libs) -lSDL2_ttf
 OBJECTS = src/app.o src/nanocad.o src/graphics.o
 
 all: $(PROJECT)

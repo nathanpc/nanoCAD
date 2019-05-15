@@ -52,6 +52,20 @@ typedef struct {
 	object_t *list;
 } object_container;
 
+// Dimension structure.
+typedef struct {
+	coord_t start;
+	coord_t end;
+	coord_t line_start;
+	coord_t line_end;
+} dimension_t;
+
+// Dimension container.
+typedef struct {
+	size_t       count;
+	dimension_t *list;
+} dimension_container;
+
 // Variable structure.
 typedef struct {
 	uint8_t  type;
@@ -95,9 +109,12 @@ bool parse_file(const char *filename);
 // Layer functions.
 layer_t* get_layer(const uint8_t num);
 
-// Object manipulation.
+// Object functions.
 object_t get_object(const size_t i);
 void get_object_container(object_container *container);
+
+// Dimension functions.
+void get_dimension_container(dimension_container *container);
 
 // Debug functions.
 void print_object_info(const object_t object);

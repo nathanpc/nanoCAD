@@ -34,11 +34,12 @@
 #define VARIABLE_OBJECT '&'
 
 // Stored structures.
-object_container   objects;
-variable_container variables;
-history_container  history;
-layer_container    layers;
-variable_t         last_object;
+object_container    objects;
+variable_container  variables;
+history_container   history;
+layer_container     layers;
+dimension_container dimensions;
+variable_t          last_object;
 
 // Command type definitions.
 #define VALID_OBJECTS_SIZE 3
@@ -86,6 +87,9 @@ void parse_coordinates(coord_t *coord, const char *arg, const coord_t *base);
 // Coordinates.
 void calc_coordinate(const char oper, const coord_t base, coord_t *coord);
 
+// Dimensions.
+bool create_dimension(const int argc, char **argv);
+
 // Objects.
 void create_object(const int type, const int argc, char **argv);
 
@@ -98,6 +102,7 @@ void nanocad_init() {
 	variables.count = 0;
 	history.count = 0;
 	layers.count = 0;
+	dimensions.count = 0;
 	
 	// Initialize last object.
 	last_object.type = '&';
@@ -140,6 +145,7 @@ void nanocad_destroy() {
 	free(objects.list);
 	free(history.lines);
 	free(layers.list);
+	free(dimensions.list);
 }
 
 /**
@@ -545,6 +551,35 @@ void parse_coordinates(coord_t *coord, const char *arg, const coord_t *base) {
 }
 
 /**
+ * Creates a new dimension and puts it into the dimension container.
+ * 
+ * @param  argc Number of arguments passed by the command.
+ * @param  argv Aguments passed by the command.
+ * @return      TRUE if everything went fine.
+ */
+bool create_dimension(const int argc, char **argv) {
+	dimension_t dimen;
+	
+	// Check for arguments.
+	if (argc != 4) {
+		return false;
+	}
+	
+	// Parse coordinates.
+	parse_coordinates(&dimen.start, argv[0], NULL);
+	parse_coordinates(&dimen.end, argv[1], NULL);
+	parse_coordinates(&dimen.line_start, argv[2], NULL);
+	parse_coordinates(&dimen.line_end, argv[3], NULL);
+	
+	// Dynamically add the new dimension to the array.
+	dimensions.list = realloc(dimensions.list,
+							  sizeof(dimension_t) * (dimensions.count + 1));
+	dimensions.list[dimensions.count++] = dimen;
+
+	return true;
+}
+
+/**
  * Creates a object in the object array.
  *
  * @param type Object type.
@@ -805,6 +840,11 @@ bool parse_command(const char *line) {
 #ifdef DEBUG
 			print_object_info(objects.list[objects.count - 1]);
 #endif
+		} else if (strcmp("dimen", command) == 0) {
+			// Dimension command.
+			if (!create_dimension(argc, argv)) {
+				return false;
+			}
 		} else if (strcmp("set", command) == 0) {
 			// Command will set a variable.
 			set_variable(argv[0], argv[1]);
@@ -1199,11 +1239,19 @@ void chomp(char *str) {
 /**
  * Retrieves the internal object container for external use.
  *
- * @param container Pointer that will be pointing to the internal object
- * container.
+ * @param container Pointer to the internal object container.
  */
 void get_object_container(object_container *container) {
 	*container = objects;
+}
+
+/**
+ * Retrieves the internal dimension container for external use.
+ * 
+ * @param container Pointer to the internal dimension container.
+ */
+void get_dimension_container(dimension_container *container) {
+	*container = dimensions;
 }
 
 /**
