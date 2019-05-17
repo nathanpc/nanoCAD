@@ -196,13 +196,15 @@ int draw_line(const coord_t start, const coord_t end, const uint8_t layer_num) {
  * Draws some text on the screen.
  * 
  * @param  text      The text to be rendered on screen.
- * @param  pos       Where to put the text.
+ * @param  pos       Where to put the text (Center-Center anchor).
  * @param  angle     Which angle should the text be in.
  * @param  layer_num Layer number where the text should be rendered.
  * @return           SDL_RenderCopyEx return value.
  */
 int draw_text(const char *text, const coord_t pos, const double angle,
 			  const uint8_t layer_num) {
+	int ret = 0;
+	
 	// Transpose the coordinates to our own origin.
 	int x1 = origin.x + pos.x;
 	int y1 = origin.y - pos.y;
@@ -224,22 +226,28 @@ int draw_text(const char *text, const coord_t pos, const double angle,
 	SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
 	
 	// Get the text dimensions and free the surface.
-	int text_width = surface->w;
-	int text_height = surface->h;
+	int width = surface->w;
+	int height = surface->h;
     SDL_FreeSurface(surface);
 	
 	// Create text area rectangle.
 	SDL_Rect rect;
-	rect.x = x1;
-	rect.y = y1;
-	rect.w = text_width;
-	rect.h = text_height;
-
-	// TODO: Find a way to free the texture.
+	rect.x = x1 - (width / 2);
+	rect.y = y1 - (height / 2);
+	rect.w = width;
+	rect.h = height;
 
 	// Copy the texture to the renderer.
-	return SDL_RenderCopyEx(renderer, texture, NULL, &rect, angle, NULL,
-							SDL_FLIP_NONE);
+	ret = SDL_RenderCopyEx(renderer, texture, NULL, &rect, angle, NULL,
+						   SDL_FLIP_NONE);
+	if (ret < 0) {
+		return ret;
+	}
+	
+	// Destroy the temporary texture.
+	SDL_DestroyTexture(texture);
+	
+	return ret;
 }
 
 /**
@@ -284,47 +292,76 @@ int draw_dimension(const coord_t start, const coord_t end,
 		return ret;
 	}
 	
+	// Calculate the perpendicular line parameters.
+	int dx = x1 - x2;
+	int dy = y1 - y2;
+	int dist = (int)round(sqrt((dx * dx) + (dy * dy)));
+	dx = (int)nearbyint((double)dx / dist);
+	dy = (int)nearbyint((double)dy / dist);
+	
+	// Draw the first marker pin.
+	int x3 = x1 + (pin_offset * dy);
+	int y3 = y1 - (pin_offset * dx);
+	int x4 = x1 - (pin_offset * dy);
+	int y4 = y1 + (pin_offset * dx);
+	ret = SDL_RenderDrawLine(renderer, x3, y3, x4, y4);
+	if (ret < 0) {
+		return ret;
+	}
+	
+#ifdef DEBUG
+	printf("Dimension Line:\n");
+	printf("    Start:    (%ld, %ld) -> (%d, %d)\n", line_start.x, line_start.y, x1, y1);
+	printf("    End:      (%ld, %ld) -> (%d, %d)\n", line_end.x, line_end.y, x2, y2);
+	printf("Perpendicular Line:\n");
+	printf("    Distance:    %d        (%d, %d)\n", dist, dx, dy);
+	printf("    1. Start:               (%d, %d)\n", x3, y3);
+	printf("    1. End:                 (%d, %d)\n", x4, y4);
+#endif
+	
+	// Draw the second marker pin.
+	x3 = x2 + (pin_offset * dy);
+	y3 = y2 - (pin_offset * dx);
+	x4 = x2 - (pin_offset * dy);
+	y4 = y2 + (pin_offset * dx);
+	ret = SDL_RenderDrawLine(renderer, x3, y3, x4, y4);
+	if (ret < 0) {
+		return ret;
+	}
+	
+#ifdef DEBUG
+	printf("    2. Start:               (%d, %d)\n", x3, y3);
+	printf("    2. End:                 (%d, %d)\n", x4, y4);
+	printf("\n");
+#endif
+	
 	// Calculate the perpendicular line angle for the marker pins.
 	double perpangle = atan2(y1 - y2, x1 - x2);
-	
-	// Draw the first leg of the starting pin.
-	double cx = x1 + (sin(perpangle) * pin_offset);
-	double cy = y1 + (cos(perpangle) * pin_offset);
-	ret = SDL_RenderDrawLine(renderer, x1, y1, cx, cy);
-	if (ret < 0) {
-		return ret;
-	}
-	
-	// Draw the second leg of the starting pin.
-	cx = x1 - (sin(perpangle) * pin_offset);
-	cy = y1 - (cos(perpangle) * pin_offset);
-	ret = SDL_RenderDrawLine(renderer, x1, y1, cx, cy);
-	if (ret < 0) {
-		return ret;
-	}
-
-	// Draw the first leg of the ending pin.
-	cx = x2 + (sin(perpangle) * pin_offset);
-	cy = y2 + (cos(perpangle) * pin_offset);
-	ret = SDL_RenderDrawLine(renderer, x2, y2, cx, cy);
-	if (ret < 0) {
-		return ret;
-	}
-
-	// Draw the second leg of the ending pin.
-	cx = x2 - (sin(perpangle) * pin_offset);
-	cy = y2 - (cos(perpangle) * pin_offset);
-	ret = SDL_RenderDrawLine(renderer, x2, y2, cx, cy);
-	if (ret < 0) {
-		return ret;
-	}
-	
-	// Render the dimension text.
+		
+	// Build the measurement string.
+	// TODO: Make the distance a functions inside the engine that will return a
+	//       string and that can have a unit set.
 	double distance = sqrt(pow(end.x - start.x, 2) + pow(end.y - start.y, 2));
 	char text[DIMENSION_TEXT_MAX_SIZE];
 	snprintf(text, DIMENSION_TEXT_MAX_SIZE, "%.2fmm", distance);
-	coord_t text_pos = line_start;
-	draw_text(text, text_pos, perpangle * (180.0 / M_PI), layer_num);
+	
+	// Calculate text position.
+	coord_t text_pos;
+	text_pos.x = ((line_start.x + line_end.x) / 2) +
+		(sin(perpangle) * pin_offset / 2);
+	text_pos.y = ((line_start.y + line_end.y) / 2) +
+		(cos(perpangle) * pin_offset);
+	
+	// Calculate text rotation angle.
+	double text_angle = perpangle * (180.0 / M_PI);
+	if (x1 < x2) {
+		text_angle = perpangle * (-360.0 / M_PI);
+	} else if (y2 <  y1) {
+		text_angle = perpangle * (-180.0 / M_PI);
+	}
+	
+	// Render the dimension text.
+	draw_text(text, text_pos, text_angle, layer_num);
 	
 	return ret;
 }
