@@ -16,6 +16,7 @@
 
 // Constants
 #define ZOOM_INTENSITY 10
+#define FONT_SIZE      20
 
 // SDL context.
 SDL_Window *window = NULL;
@@ -80,7 +81,7 @@ bool graphics_init(const int width, const int height) {
 		
 	// Create the font object.
 	font = TTF_OpenFontRW(SDL_RWFromConstMem(osifont_ttf, osifont_ttf_length),
-						  1, 20);
+						  1, FONT_SIZE);
 	if (font == NULL) {
 		printf("Failed to load the embedded font. SDL_ttf Error: %s\n",
 			   TTF_GetError());
@@ -195,11 +196,12 @@ int draw_line(const coord_t start, const coord_t end, const uint8_t layer_num) {
 /**
  * Draws some text on the screen.
  * 
- * @param  text      The text to be rendered on screen.
- * @param  pos       Where to put the text (Center-Center anchor).
- * @param  angle     Which angle should the text be in.
- * @param  layer_num Layer number where the text should be rendered.
- * @return           SDL_RenderCopyEx return value.
+ * @param  text       The text to be rendered on screen.
+ * @param  pos        Where to put the text (Center-Center anchor).
+ * @param  angle      Which angle should the text be in.
+ * @param  layer_num  Layer number where the text should be rendered.
+ * @param  compensate Should we compensate the rotation on width or height?
+ * @return            SDL_RenderCopyEx return value.
  */
 int draw_text(const char *text, const coord_t pos, const double angle,
 			  const uint8_t layer_num) {
@@ -236,7 +238,25 @@ int draw_text(const char *text, const coord_t pos, const double angle,
 	rect.y = y1 - (height / 2);
 	rect.w = width;
 	rect.h = height;
-
+	
+	// Compensate text position according to the angle, since the there's a
+	// space at the top of each character in the font.
+	if (((int)angle % 90) == 0) {
+		// Text is at a right angle.
+		if (angle > 270) {
+			// Text above dimension line.
+			rect.y -= (int)((float)FONT_SIZE * 0.2);
+		} else if (angle > 180) {
+			// Text to the left of dimension line.
+			rect.x -= (int)((float)FONT_SIZE * 0.2);
+		}
+	} else {
+		// Text is at a arbitrary angle.
+		if (angle > 180) {
+			rect.y -= (int)((float)FONT_SIZE * 0.2);
+			rect.x -= (int)((float)FONT_SIZE * 0.2);
+		}
+	}
 	
 	SDL_RenderDrawPoint(renderer, x1, y1);
 	// Copy the texture to the renderer.
@@ -347,9 +367,6 @@ int draw_dimension(const coord_t start, const coord_t end,
 	printf("    2. Start:               (%d, %d)\n", x3, y3);
 	printf("    2. End:                 (%d, %d)\n", x4, y4);
 #endif
-	
-	// Calculate the perpendicular line angle for the marker pins.
-	double perpangle = atan2(y1 - y2, x1 - x2);
 		
 	// Build the measurement string.
 	// TODO: Make the distance a functions inside the engine that will return a
@@ -364,13 +381,24 @@ int draw_dimension(const coord_t start, const coord_t end,
 	text_pos.y = origin.y - ((ty1 + ty2) / 2);
 	
 	// Calculate text rotation angle.
+	double perpangle = atan2(y1 - y2, x1 - x2);
 	double text_angle = perpangle * (180.0 / M_PI);
+	
+	// Fix the rotation on opposite sides.
+	if ((start.y < line_start.y) && (end.y < line_end.y)) {
+		// Dimension line above measured line.
+		text_angle += 180;
+	} else if ((start.x > line_start.x) && (end.x > line_end.x)) {
+		// Dimension line to the left of measured line.
+		text_angle += 180;
+	}
 	
 #ifdef DEBUG
 	printf("Dimension Text:\n");
 	printf("    Distance:    %d        (%d, %d)\n", dist, dx, dy);
 	printf("    Position: (%ld, %ld) -> (%d, %d)\n", text_pos.x, text_pos.y,
 		   (int)(origin.x + text_pos.x), (int)(origin.y - text_pos.y));
+	printf("    Angle:       %.0f°\n", text_angle);
 	printf("\n");
 #endif
 	
