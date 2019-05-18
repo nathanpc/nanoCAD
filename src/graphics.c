@@ -237,6 +237,8 @@ int draw_text(const char *text, const coord_t pos, const double angle,
 	rect.w = width;
 	rect.h = height;
 
+	
+	SDL_RenderDrawPoint(renderer, x1, y1);
 	// Copy the texture to the renderer.
 	ret = SDL_RenderCopyEx(renderer, texture, NULL, &rect, angle, NULL,
 						   SDL_FLIP_NONE);
@@ -292,6 +294,12 @@ int draw_dimension(const coord_t start, const coord_t end,
 		return ret;
 	}
 	
+	// Text position variables will be the mid-point between marker pins.
+	int tx1 = 0;
+	int ty1 = 0;
+	int tx2 = 0;
+	int ty2 = 0;
+	
 	// Calculate the perpendicular line parameters.
 	int dx = x1 - x2;
 	int dy = y1 - y2;
@@ -304,6 +312,8 @@ int draw_dimension(const coord_t start, const coord_t end,
 	int y3 = y1 - (pin_offset * dx);
 	int x4 = x1 - (pin_offset * dy);
 	int y4 = y1 + (pin_offset * dx);
+	tx1 = x4;
+	ty1 = y4;
 	ret = SDL_RenderDrawLine(renderer, x3, y3, x4, y4);
 	if (ret < 0) {
 		return ret;
@@ -311,8 +321,10 @@ int draw_dimension(const coord_t start, const coord_t end,
 	
 #ifdef DEBUG
 	printf("Dimension Line:\n");
-	printf("    Start:    (%ld, %ld) -> (%d, %d)\n", line_start.x, line_start.y, x1, y1);
-	printf("    End:      (%ld, %ld) -> (%d, %d)\n", line_end.x, line_end.y, x2, y2);
+	printf("    Start:    (%ld, %ld) -> (%d, %d)\n", line_start.x, line_start.y,
+		   x1, y1);
+	printf("    End:      (%ld, %ld) -> (%d, %d)\n", line_end.x, line_end.y,
+		   x2, y2);
 	printf("Perpendicular Line:\n");
 	printf("    Distance:    %d        (%d, %d)\n", dist, dx, dy);
 	printf("    1. Start:               (%d, %d)\n", x3, y3);
@@ -324,6 +336,8 @@ int draw_dimension(const coord_t start, const coord_t end,
 	y3 = y2 - (pin_offset * dx);
 	x4 = x2 - (pin_offset * dy);
 	y4 = y2 + (pin_offset * dx);
+	tx2 = x4;
+	ty2 = y4;
 	ret = SDL_RenderDrawLine(renderer, x3, y3, x4, y4);
 	if (ret < 0) {
 		return ret;
@@ -332,7 +346,6 @@ int draw_dimension(const coord_t start, const coord_t end,
 #ifdef DEBUG
 	printf("    2. Start:               (%d, %d)\n", x3, y3);
 	printf("    2. End:                 (%d, %d)\n", x4, y4);
-	printf("\n");
 #endif
 	
 	// Calculate the perpendicular line angle for the marker pins.
@@ -343,22 +356,23 @@ int draw_dimension(const coord_t start, const coord_t end,
 	//       string and that can have a unit set.
 	double distance = sqrt(pow(end.x - start.x, 2) + pow(end.y - start.y, 2));
 	char text[DIMENSION_TEXT_MAX_SIZE];
-	snprintf(text, DIMENSION_TEXT_MAX_SIZE, "%.2fmm", distance);
+	snprintf(text, DIMENSION_TEXT_MAX_SIZE, "%.0f", distance);
 	
-	// Calculate text position.
+	// Calculate text position with the origin reset.
 	coord_t text_pos;
-	text_pos.x = ((line_start.x + line_end.x) / 2) +
-		(sin(perpangle) * pin_offset / 2);
-	text_pos.y = ((line_start.y + line_end.y) / 2) +
-		(cos(perpangle) * pin_offset);
+    text_pos.x = origin.x + ((tx1 + tx2) / 2);
+	text_pos.y = origin.y - ((ty1 + ty2) / 2);
 	
 	// Calculate text rotation angle.
 	double text_angle = perpangle * (180.0 / M_PI);
-	if (x1 < x2) {
-		text_angle = perpangle * (-360.0 / M_PI);
-	} else if (y2 <  y1) {
-		text_angle = perpangle * (-180.0 / M_PI);
-	}
+	
+#ifdef DEBUG
+	printf("Dimension Text:\n");
+	printf("    Distance:    %d        (%d, %d)\n", dist, dx, dy);
+	printf("    Position: (%ld, %ld) -> (%d, %d)\n", text_pos.x, text_pos.y,
+		   (int)(origin.x + text_pos.x), (int)(origin.y - text_pos.y));
+	printf("\n");
+#endif
 	
 	// Render the dimension text.
 	draw_text(text, text_pos, text_angle, layer_num);
