@@ -241,7 +241,7 @@ int draw_text(const char *text, const coord_t pos, const double angle,
 	
 	// Compensate text position according to the angle, since the there's a
 	// space at the top of each character in the font.
-	if (((int)angle % 90) == 0) {
+	/*if (((int)angle % 90) == 0) {
 		// Text is at a right angle.
 		if (angle > 270) {
 			// Text above dimension line.
@@ -257,7 +257,7 @@ int draw_text(const char *text, const coord_t pos, const double angle,
 			rect.y -= (int)((float)FONT_SIZE * 0.2);
 			rect.x -= (int)((float)FONT_SIZE * 0.2);
 		}
-	}
+	}*/
 	
 	SDL_RenderDrawPoint(renderer, x1, y1);
 	// Copy the texture to the renderer.
@@ -369,6 +369,7 @@ int draw_dimension(const coord_t start, const coord_t end,
 		// Dimension line above measured line.
 		tx1 = x4;
 		ty1 = y4;
+		ty1 -= (int)((float)FONT_SIZE * 0.2);
 	} else if ((sy < y1) && (ey < y2)) {
 		// Dimension line below the measured line.
 		tx1 = x3;
@@ -377,6 +378,7 @@ int draw_dimension(const coord_t start, const coord_t end,
 		// Dimension line to the left of measured line.
 		tx1 = x4;
 		ty1 = y4;
+		tx1 -= (int)((float)FONT_SIZE * 0.2);
 	} else if ((sx < x1) && (ex < x2)) {
 		// Dimension line to the right of measured line.
 		tx1 = x4;
@@ -410,6 +412,7 @@ int draw_dimension(const coord_t start, const coord_t end,
 		// Dimension line above measured line.
 		tx2 = x4;
 		ty2 = y4;
+		ty2 -= (int)((float)FONT_SIZE * 0.2);
 	} else if ((sy < y1) && (ey < y2)) {
 		// Dimension line below the measured line.
 		tx2 = x3;
@@ -418,6 +421,7 @@ int draw_dimension(const coord_t start, const coord_t end,
 		// Dimension line to the left of measured line.
 		tx2 = x4;
 		ty2 = y4;
+		tx2 -= (int)((float)FONT_SIZE * 0.2);
 	} else if ((sx < x1) && (ex < x2)) {
 		// Dimension line to the right of measured line.
 		tx2 = x4;
