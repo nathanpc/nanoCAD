@@ -239,27 +239,6 @@ int draw_text(const char *text, const coord_t pos, const double angle,
 	rect.w = width;
 	rect.h = height;
 	
-	// Compensate text position according to the angle, since the there's a
-	// space at the top of each character in the font.
-	/*if (((int)angle % 90) == 0) {
-		// Text is at a right angle.
-		if (angle > 270) {
-			// Text above dimension line.
-			rect.y -= (int)((float)FONT_SIZE * 0.2);
-		} else if (angle > 180) {
-			// Text to the left of dimension line.
-			rect.x -= (int)((float)FONT_SIZE * 0.2);
-		}
-	} else {
-		// Text is at a arbitrary angle.
-		if (angle > 180) {
-			// Text is probably below or to the right of the dimension line.
-			rect.y -= (int)((float)FONT_SIZE * 0.2);
-			rect.x -= (int)((float)FONT_SIZE * 0.2);
-		}
-	}*/
-	
-	SDL_RenderDrawPoint(renderer, x1, y1);
 	// Copy the texture to the renderer.
 	ret = SDL_RenderCopyEx(renderer, texture, NULL, &rect, angle, NULL,
 						   SDL_FLIP_NONE);
@@ -318,10 +297,6 @@ int draw_dimension(const coord_t start, const coord_t end,
 		ex = xt;
 		ey = yt;
 	}
-	
-	// Calculate the dimension text rotation angle.
-	double perpangle = atan2(y1 - y2, x1 - x2);
-	double text_angle = perpangle * (180.0 / M_PI);
 	
 	// Get the line's layer.
 	layer_t *layer = get_layer(layer_num);
@@ -442,9 +417,12 @@ int draw_dimension(const coord_t start, const coord_t end,
 	
 	// Calculate text position with the origin reset.
 	coord_t text_pos;
-    text_pos.x = origin.x + ((tx1 + tx2) / 2);
+    text_pos.x = ((tx1 + tx2) / 2) - origin.x;
 	text_pos.y = origin.y - ((ty1 + ty2) / 2);
-	
+
+	// Calculate the dimension text rotation angle.
+	double perpangle = atan2(y1 - y2, x1 - x2);
+	double text_angle = perpangle * (180.0 / M_PI);
 	
 	// Fix the rotation on opposite sides (remember that Y is inverted in SDL).
 	if ((sy > y1) && (ey > y2)) {
