@@ -253,6 +253,7 @@ int draw_text(const char *text, const coord_t pos, const double angle,
 	} else {
 		// Text is at a arbitrary angle.
 		if (angle > 180) {
+			// Text is probably below or to the right of the dimension line.
 			rect.y -= (int)((float)FONT_SIZE * 0.2);
 			rect.x -= (int)((float)FONT_SIZE * 0.2);
 		}
@@ -286,15 +287,41 @@ int draw_dimension(const coord_t start, const coord_t end,
 				   const coord_t line_start, const coord_t line_end,
 				   const uint8_t layer_num) {
 	int ret = 0;
+	int pin_offset = 10;
 
 	// Transpose the coordinates to our own origin.
 	int x1 = origin.x + line_start.x;
 	int y1 = origin.y - line_start.y;
 	int x2 = origin.x + line_end.x;
 	int y2 = origin.y - line_end.y;
+	int sx = origin.x + start.x;
+	int sy = origin.y - start.y;
+	int ex = origin.x + end.x;
+	int ey = origin.y - end.y;
 	
-	// Define the offsets.
-	int pin_offset = 10;
+	// Make sure all dimension lines are going from left to right.
+	if (x1 > x2) {
+		int xt = x1;
+		int yt = y1;
+		x1 = x2;
+		y1 = y2;
+		x2 = xt;
+		y2 = yt;
+	}
+	
+	// Make sure all measured lines are going from left to right.
+	if (sx > ex) {
+		int xt = sx;
+		int yt = sy;
+		sx = ex;
+		sy = ey;
+		ex = xt;
+		ey = yt;
+	}
+	
+	// Calculate the dimension text rotation angle.
+	double perpangle = atan2(y1 - y2, x1 - x2);
+	double text_angle = perpangle * (180.0 / M_PI);
 	
 	// Get the line's layer.
 	layer_t *layer = get_layer(layer_num);
@@ -332,11 +359,28 @@ int draw_dimension(const coord_t start, const coord_t end,
 	int y3 = y1 - (pin_offset * dx);
 	int x4 = x1 - (pin_offset * dy);
 	int y4 = y1 + (pin_offset * dx);
-	tx1 = x4;
-	ty1 = y4;
 	ret = SDL_RenderDrawLine(renderer, x3, y3, x4, y4);
 	if (ret < 0) {
 		return ret;
+	}
+
+	// Check the line direction and determine which marker position to use.
+	if ((sy > y1) && (ey > y2)) {
+		// Dimension line above measured line.
+		tx1 = x4;
+		ty1 = y4;
+	} else if ((sy < y1) && (ey < y2)) {
+		// Dimension line below the measured line.
+		tx1 = x3;
+		ty1 = y3;
+	} else if ((sx > x1) && (ex > x2)) {
+		// Dimension line to the left of measured line.
+		tx1 = x4;
+		ty1 = y4;
+	} else if ((sx < x1) && (ex < x2)) {
+		// Dimension line to the right of measured line.
+		tx1 = x4;
+		ty1 = y4;
 	}
 	
 #ifdef DEBUG
@@ -345,7 +389,7 @@ int draw_dimension(const coord_t start, const coord_t end,
 		   x1, y1);
 	printf("    End:      (%ld, %ld) -> (%d, %d)\n", line_end.x, line_end.y,
 		   x2, y2);
-	printf("Perpendicular Line:\n");
+	printf("Marker Pins:\n");
 	printf("    Distance:    %d        (%d, %d)\n", dist, dx, dy);
 	printf("    1. Start:               (%d, %d)\n", x3, y3);
 	printf("    1. End:                 (%d, %d)\n", x4, y4);
@@ -356,11 +400,28 @@ int draw_dimension(const coord_t start, const coord_t end,
 	y3 = y2 - (pin_offset * dx);
 	x4 = x2 - (pin_offset * dy);
 	y4 = y2 + (pin_offset * dx);
-	tx2 = x4;
-	ty2 = y4;
 	ret = SDL_RenderDrawLine(renderer, x3, y3, x4, y4);
 	if (ret < 0) {
 		return ret;
+	}
+	
+	// Check the line direction and determine which marker position to use.
+	if ((sy > y1) && (ey > y2)) {
+		// Dimension line above measured line.
+		tx2 = x4;
+		ty2 = y4;
+	} else if ((sy < y1) && (ey < y2)) {
+		// Dimension line below the measured line.
+		tx2 = x3;
+		ty2 = y3;
+	} else if ((sx > x1) && (ex > x2)) {
+		// Dimension line to the left of measured line.
+		tx2 = x4;
+		ty2 = y4;
+	} else if ((sx < x1) && (ex < x2)) {
+		// Dimension line to the right of measured line.
+		tx2 = x4;
+		ty2 = y4;
 	}
 	
 #ifdef DEBUG
@@ -369,8 +430,8 @@ int draw_dimension(const coord_t start, const coord_t end,
 #endif
 		
 	// Build the measurement string.
-	// TODO: Make the distance a functions inside the engine that will return a
-	//       string and that can have a unit set.
+	// TODO: Put the distance function inside the engine and return a string and
+	//       can have a unit set.
 	double distance = sqrt(pow(end.x - start.x, 2) + pow(end.y - start.y, 2));
 	char text[DIMENSION_TEXT_MAX_SIZE];
 	snprintf(text, DIMENSION_TEXT_MAX_SIZE, "%.0f", distance);
@@ -380,15 +441,15 @@ int draw_dimension(const coord_t start, const coord_t end,
     text_pos.x = origin.x + ((tx1 + tx2) / 2);
 	text_pos.y = origin.y - ((ty1 + ty2) / 2);
 	
-	// Calculate text rotation angle.
-	double perpangle = atan2(y1 - y2, x1 - x2);
-	double text_angle = perpangle * (180.0 / M_PI);
 	
-	// Fix the rotation on opposite sides.
-	if ((start.y < line_start.y) && (end.y < line_end.y)) {
+	// Fix the rotation on opposite sides (remember that Y is inverted in SDL).
+	if ((sy > y1) && (ey > y2)) {
 		// Dimension line above measured line.
 		text_angle += 180;
-	} else if ((start.x > line_start.x) && (end.x > line_end.x)) {
+	} else if ((sy < y1) && (ey < y2)) {
+		// Dimension line below the measured line.
+		text_angle += 180;
+	} else if ((sx > x1) && (ex > x2)) {
 		// Dimension line to the left of measured line.
 		text_angle += 180;
 	}

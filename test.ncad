@@ -3,59 +3,25 @@
 #
 # Author: Nathan Campos <nathanpc@dreamintech.net>
 
-# Drawing a bear as an example.
-# Head
-line x100;y100, w100
-line x200;y100, h100
-line x200;y200, w-100
-line x100;y200, h-100
+# Dimension line spacing set to 20.
 
-# Ear 1
-line x100;y200, h30
-line x100;y230, w30
-line x130;y230, h-30
+# Contiguous right lines.
+line x300;y300, w200
+dimen &^[0], &^[1], x300;y320, x500;y320
+line &^[1], h-100
+dimen &^[0], &^[1], x520;y300, x520;y200
+line $^[1], w-200
+dimen &^[0], &^[1], x500;y180, x300;y180
+line $^[1], h100
+dimen &^[0], &^[1], x280;y200, x280;y300
 
-# Ear 2
-line x200;y200, h30
-line x200;y230, w-30
-line x170;y230, h-30
-
-# Mouth
-line x110;y120, x190;y120
-line x190;y120, h20
-line x190;y140, x110;y140
-line x110;y140, h-20
-line x110;y130, x190;y130
-
-# Variable setting tests.
-set $val, 100                # Sample value variable.
-set @coord, x700;y300        # Sample coordinate variable.
-line x700;y300, w100 = &obj  # Sample object variable.
-
-# Variable usage tests.
-line x700;y300, h$val        # Single fixed number substitution.
-line @coord, x800;y400       # Single coordinate substitution.
-line &obj[1], h100           # Single object coordinate substitution.
-line @coord, h-$val          # Multiple variable substitution.
-line &obj[1], @coord         # More multiple variable substitution.
-
-# Last object variable usage test.
-line x600;y100, w100         # Set the first last object of this group.
-line &^[0], h100             # Use the last object beginning coordinate.
-line &^[1], w100             # Use the last object second coordinate.
-line &^[1], h-100 = &oie     # Using a variable and setting another.
-
-# Debugging commands.
-inspect $val
-inspect @coord
-inspect &obj
-inspect &^
-list
-
-# Testing layers.
-layer 1, Test1, 33ab9c
-layer 2, Test 2, aa12cc
-line x650;y450, w100, l1
-line x650;y500, w100, l2
-inspect l2
+# 45deg lines.
+line x700;y400, x800;y300
+dimen &^[0], &^[1], x720;y420, x820;y320 # -\
+line &^[1], x700;y200
+dimen &^[0], &^[1], x820;y280, x720;y180 # -/
+line x700;y400, x600;y300
+dimen &^[0], &^[1], x680;y420, x580;y320 # _\ wrong
+line &^[1], x700;y200
+dimen &^[0], &^[1], x580;y280, x680;y180 # _/ wrong
 
