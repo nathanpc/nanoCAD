@@ -1243,20 +1243,6 @@ bool parse_file(const char *filename) {
 }
 
 /**
- * Removes trailling whitespace from a string.
- * Warning: This function modifies the original string.
- * 
- * @param str String to be trimmed.
- */
-void chomp(char *str) {
-	for (int i = strlen(str) - 1; i >= 0; i--) {
-		if (isspace(str[i])) {
-			str[i] = '\0';
-		}
-	}
-}
-
-/**
  * Retrieves the internal object container for external use.
  *
  * @param container Pointer to the internal object container.
@@ -1293,6 +1279,20 @@ object_t get_object(const size_t i) {
 void free_array(void **arr, const size_t len) {
 	for (size_t i = 0; i < len; i++) {
 		free(arr[i]);
+	}
+}
+
+/**
+ * Removes trailling whitespace from a string.
+ * Warning: This function modifies the original string.
+ * 
+ * @param str String to be trimmed.
+ */
+void chomp(char *str) {
+	for (int i = strlen(str) - 1; i >= 0; i--) {
+		if (isspace(str[i])) {
+			str[i] = '\0';
+		}
 	}
 }
 
