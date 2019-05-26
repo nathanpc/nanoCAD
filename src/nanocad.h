@@ -17,7 +17,7 @@
 #define COMMAND_MAX_SIZE        15  // Yes, I'm lazy. Until further notice,
 #define ARGUMENT_MAX_SIZE       30  // no dynamic-sized string and arrays for
 #define VARIABLE_MAX_SIZE       15  // you.
-#define ARGUMENT_ARRAY_MAX_SIZE 4
+#define ARGUMENT_ARRAY_MAX_SIZE 5
 
 // Object type definitions.
 #define TYPE_LINE   1
@@ -58,6 +58,7 @@ typedef struct {
 	coord_t end;
 	coord_t line_start;
 	coord_t line_end;
+	uint8_t layer_num;
 } dimension_t;
 
 // Dimension container.

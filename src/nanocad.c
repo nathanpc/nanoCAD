@@ -77,6 +77,7 @@ void set_variable(const char *name, const char *value);
 int substitute_variables(const char *command, char arg[ARGUMENT_MAX_SIZE]);
 
 // Layers.
+uint8_t parse_layer_num(const char *arg);
 void set_layer(const uint8_t num, const char *name, const char *color);
 
 // Parsing.
@@ -195,6 +196,28 @@ layer_t* get_layer(const uint8_t num) {
 	}
 	
 	return NULL;
+}
+
+/**
+ * Parses a layer number from a argument string.
+ * 
+ * @param  arg Argument string in the form of "l<num>".
+ * @return     Layer number.
+ */
+uint8_t parse_layer_num(const char *arg) {
+	char str_num[4];
+	
+	// Parse the number from the string.
+	for (uint8_t i = 0; i < 4; i++) {
+		str_num[i] = arg[i + 1];
+		
+		// Check if we have reached a premature end of string.
+		if (arg[i + 1] == '\0') {
+			break;
+		}
+	}
+		
+	return (uint8_t)atoi(str_num);
 }
 
 /**
@@ -559,10 +582,15 @@ void parse_coordinates(coord_t *coord, const char *arg, const coord_t *base) {
  */
 bool create_dimension(const int argc, char **argv) {
 	dimension_t dimen;
+	dimen.layer_num = 0;
 	
 	// Check for arguments.
-	if (argc != 4) {
+	if ((argc < 4) && (argc > 5)) {
+		// Wrong number of arguments.
 		return false;
+	} else if (argv[argc - 1][0] == 'l') {
+		// Setting a layer.
+		dimen.layer_num = parse_layer_num(argv[argc - 1]);
 	}
 	
 	// Parse coordinates.
@@ -628,16 +656,8 @@ void create_object(const int type, const int argc, char **argv) {
 	// Check for optional arguments.
 	if (argv[last_index][0] == 'l') {
 		// We have a layer setting.
-		char str_num[4];
-		for (uint8_t i = 0; i < 4; i++) {
-			str_num[i] = argv[last_index][i + 1];
-			
-			if (argv[last_index][i + 1] == '\0') {
-				break;
-			}
-		}
-		
-		objects.list[objects.count - 1].layer_num = (uint8_t)atoi(str_num);
+		objects.list[objects.count - 1].layer_num =
+			parse_layer_num(argv[last_index]);
 	}
 }
 

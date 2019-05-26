@@ -156,7 +156,7 @@ void graphics_render() {
 		
 		// Draw the dimension.
 		ret = draw_dimension(dimen.start, dimen.end,
-							 dimen.line_start, dimen.line_end, 0);
+							 dimen.line_start, dimen.line_end, dimen.layer_num);
 		
 		// Report any errors if there were any.
 		if (ret < 0) {
