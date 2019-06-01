@@ -1,14 +1,14 @@
 /**
- * app.c
- * A simple wrapper for the nanoCAD engine.
+ * app/cli.c
+ * A simple command-line wrapper for the nanoCAD engine.
  *
  * @author Nathan Campos <nathanpc@dreamintech.net>
  */
 
 #include <stdio.h>
 #include <string.h>
-#include "nanocad.h"
-#include "graphics.h"
+#include "../engine/nanocad.h"
+#include "../graphics/sdl_graphics.h"
 
 // Constant definitions.
 #define WRAPPER_VERSION "0.1a"

@@ -1,5 +1,5 @@
 /**
- * graphics.c
+ * graphics/sdl_graphics.c
  * A SDL graphics abstraction layer.
  *
  * @author Nathan Campos <nathanpc@dreamintech.net>
@@ -10,9 +10,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include "nanocad.h"
+#include "../engine/nanocad.h"
 #include "osifont.h"
-#include "graphics.h"
+#include "sdl_graphics.h"
 
 // Constants
 #define ZOOM_INTENSITY 10

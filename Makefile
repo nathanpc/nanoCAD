@@ -4,7 +4,7 @@ RM = rm -f
 GDB = gdb
 CFLAGS = -Wall -std=gnu99 $(shell sdl2-config --cflags)
 LDFLAGS = -lm -lreadline $(shell sdl2-config --libs) -lSDL2_ttf
-OBJECTS = src/app.o src/nanocad.o src/graphics.o
+OBJECTS = src/app/cli.o src/engine/nanocad.o src/graphics/sdl_graphics.o
 
 all: $(PROJECT)
 

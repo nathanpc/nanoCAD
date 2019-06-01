@@ -1,5 +1,5 @@
 /**
- * graphics.h
+ * graphics/sdl_graphics.h
  * A SDL graphics abstraction layer.
  *
  * @author Nathan Campos <nathanpc@dreamintech.net>
