@@ -607,8 +607,11 @@ bool create_dimension(const int argc, char **argv, const bool is_offset) {
 		coord_t oend;
 		coord_t delta;
 		
+		// Get offset distance.
+		long offset = 50;
+		
 		// Make sure all dimension lines are going from left to right
-		// and bottom to top.
+		// and top to bottom.
 		if (dimen.start.y == dimen.end.y) {
 			// Straight horizontal lines.
 			if (dimen.start.x < dimen.end.x) {
@@ -626,14 +629,44 @@ bool create_dimension(const int argc, char **argv, const bool is_offset) {
 			}
 		} else if (dimen.start.x == dimen.end.x) {
 			// Straight vertical lines.
-			if (dimen.start.y < dimen.end.y) {
-				// Line going bottom to top.
+			if (dimen.start.y > dimen.end.y) {
+				// Line going top to bottom.
 				ostart.x = dimen.start.x;
 				ostart.y = dimen.start.y;
 				oend.x = dimen.end.x;
 				oend.y = dimen.end.y;
 			} else {
-				// Line going top to bottom.
+				// Line going bottom to top.
+				ostart.x = dimen.end.x;
+				ostart.y = dimen.end.y;
+				oend.x = dimen.start.x;
+				oend.y = dimen.start.y;
+			}
+		} else if (dimen.start.y > dimen.end.y) {
+			// Non-straight lines going top to bottom.
+			if (dimen.start.x < dimen.end.x) {
+				// Line going left to right.
+				ostart.x = dimen.start.x;
+				ostart.y = dimen.start.y;
+				oend.x = dimen.end.x;
+				oend.y = dimen.end.y;
+			} else {
+				// Line going right to left.
+				ostart.x = dimen.end.x;
+				ostart.y = dimen.end.y;
+				oend.x = dimen.start.x;
+				oend.y = dimen.start.y;
+			}
+		} else if (dimen.start.y < dimen.end.y) {
+			// Non-straight lines going bottom to top.
+			if (dimen.start.x < dimen.end.x) {
+				// Line going left to right.
+				ostart.x = dimen.start.x;
+				ostart.y = dimen.start.y;
+				oend.x = dimen.end.x;
+				oend.y = dimen.end.y;
+			} else {
+				// Line going right to left.
 				ostart.x = dimen.end.x;
 				ostart.y = dimen.end.y;
 				oend.x = dimen.start.x;
@@ -649,43 +682,53 @@ bool create_dimension(const int argc, char **argv, const bool is_offset) {
 		delta.x = (long)nearbyintl((long double)delta.x / dist);
 		delta.y = (long)nearbyintl((long double)delta.y / dist);
 		
-		// Get offset distance.
-		long offset = 50;
-		
-		printf("Direction: %s\n", argv[2]);
-		
 		// Calculate the dimension line position.
 		if (argv[2][0] == 'u') {
 			// Above measured line.
-			dimen.line_start.x = ostart.x + (offset * delta.y);
-			dimen.line_start.y = ostart.y - (offset * delta.x);
-			dimen.line_end.x = oend.x + (offset * delta.y);
-			dimen.line_end.y = oend.y - (offset * delta.x);
+			dimen.line_start.x = dimen.start.x;
+			dimen.line_start.y = dimen.start.y - (offset * delta.x);
+			dimen.line_end.x = dimen.end.x;
+			dimen.line_end.y = dimen.end.y - (offset * delta.x);
+			
+			// Diagonal dimension.
+			if (argv[2][1] == 'l') {
+				dimen.line_start.x = dimen.start.x + (offset * delta.y);
+				dimen.line_end.x = dimen.end.x + (offset * delta.y);
+			} else if (argv[2][1] == 'r') {
+				dimen.line_start.x = dimen.start.x + (offset * delta.y);
+				dimen.line_end.x = dimen.end.x + (offset * delta.y);
+			}
 		} else if (argv[2][0] == 'd') {
 			// Below measured line.
-			dimen.line_start.x = ostart.x + (offset * delta.y);
-			dimen.line_start.y = ostart.y + (offset * delta.x);
-			dimen.line_end.x = oend.x + (offset * delta.y);
-			dimen.line_end.y = oend.y + (offset * delta.x);
+			dimen.line_start.x = dimen.start.x;
+			dimen.line_start.y = dimen.start.y + (offset * delta.x);
+			dimen.line_end.x = dimen.end.x;
+			dimen.line_end.y = dimen.end.y + (offset * delta.x);
+			
+			// Diagonal dimension.
+			if (argv[2][1] == 'l') {
+				dimen.line_start.x = dimen.start.x - (offset * delta.y);
+				dimen.line_end.x = dimen.end.x - (offset * delta.y);
+			} else if (argv[2][1] == 'r') {
+				// TODO: Fix this.
+				dimen.line_start.x = dimen.start.x - (offset * delta.y);
+				dimen.line_end.x = dimen.end.x - (offset * delta.y);
+			}
 		} else if (argv[2][0] == 'r') {
 			// Right of measured line.
-			dimen.line_start.x = ostart.x - (offset * delta.y);
-			dimen.line_start.y = ostart.y - (offset * delta.x);
-			dimen.line_end.x = oend.x - (offset * delta.y);
-			dimen.line_end.y = oend.y - (offset * delta.x);
+			dimen.line_start.x = dimen.start.x + (offset * delta.y);
+			dimen.line_start.y = dimen.start.y;
+			dimen.line_end.x = dimen.end.x + (offset * delta.y);
+			dimen.line_end.y = dimen.end.y;
 		} else if (argv[2][0] == 'l') {
 			// Left of measured line.
-			dimen.line_start.x = ostart.x + (offset * delta.y);
-			dimen.line_start.y = ostart.y - (offset * delta.x);
-			dimen.line_end.x = oend.x + (offset * delta.y);
-			dimen.line_end.y = oend.y - (offset * delta.x);
+			dimen.line_start.x = dimen.start.x - (offset * delta.y);
+			dimen.line_start.y = dimen.start.y;
+			dimen.line_end.x = dimen.end.x - (offset * delta.y);
+			dimen.line_end.y = dimen.end.y;
 		} else {
 			printf("Unknown dimension offset direction: '%s'\n", argv[2]);
-			//return false;
-			dimen.line_start.x = ostart.x + (offset * delta.y);
-			dimen.line_start.y = ostart.y - (offset * delta.x);
-			dimen.line_end.x = oend.x + (offset * delta.y);
-			dimen.line_end.y = oend.y - (offset * delta.x);
+			return false;
 		}
 	} else {
 		// Use the manually inserted coordinates.

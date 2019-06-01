@@ -366,6 +366,9 @@ int draw_dimension(const coord_t start, const coord_t end,
 		   x1, y1);
 	printf("    End:      (%ld, %ld) -> (%d, %d)\n", line_end.x, line_end.y,
 		   x2, y2);
+	printf("    Middle:   (%ld, %ld) -> (%d, %d)\n",
+		   (line_start.x + line_end.x) / 2, (line_start.y + line_end.y) / 2,
+		   (x1 + x2) / 2, (y1 + y2) / 2);
 	printf("Marker Pins:\n");
 	printf("    Distance:    %d        (%d, %d)\n", dist, dx, dy);
 	printf("    1. Start:               (%d, %d)\n", x3, y3);
