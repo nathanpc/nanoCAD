@@ -104,25 +104,25 @@ void nanocad_init();
 void nanocad_destroy();
 
 // General parsing.
-bool parse_command(const char *line);
-bool parse_file(const char *filename);
+bool nanocad_parse_command(const char *line);
+bool nanocad_parse_file(const char *filename);
 
 // Layer functions.
-layer_t* get_layer(const uint8_t num);
+layer_t* nanocad_get_layer(const uint8_t num);
 
 // Object functions.
-object_t get_object(const size_t i);
-void get_object_container(object_container *container);
+object_t nanocad_get_object(const size_t i);
+void nanocad_get_object_container(object_container *container);
 
 // Dimension functions.
-void get_dimension_container(dimension_container *container);
+void nanocad_get_dimension_container(dimension_container *container);
 
 // Debug functions.
 void print_object_info(const object_t object);
 void print_variable_info(const variable_t var);
 void print_layer_info(const layer_t layer);
 void print_line_history();
-bool inspect(char *thing);
+bool nanocad_inspect(char *thing);
 
 #endif
 

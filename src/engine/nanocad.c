@@ -78,12 +78,15 @@ int substitute_variables(const char *command, char arg[ARGUMENT_MAX_SIZE]);
 
 // Layers.
 uint8_t parse_layer_num(const char *arg);
+layer_t* get_layer(const uint8_t num);
 void set_layer(const uint8_t num, const char *name, const char *color);
 
 // Parsing.
 void parse_rgb_color(const char *str, rgba_color_t *color);
 int parse_line(const char *line, char *command, char **arguments);
 void parse_coordinates(coord_t *coord, const char *arg, const coord_t *base);
+bool parse_command(const char *line);
+bool parse_file(const char *filename);
 
 // Coordinates.
 void calc_coordinate(const char oper, const coord_t base, coord_t *coord);
@@ -93,6 +96,11 @@ bool create_dimension(const int argc, char **argv, const bool is_offset);
 
 // Objects.
 void create_object(const int type, const int argc, char **argv);
+object_t get_object(const size_t i);
+
+// Debug.
+bool inspect(char *thing);
+
 
 /**
  * Initializes the engine.
@@ -147,6 +155,75 @@ void nanocad_destroy() {
 	free(history.lines);
 	free(layers.list);
 	free(dimensions.list);
+}
+
+/**
+ * Parses a command and executes it.
+ *
+ * @param  line A command line without the newline character at the end.
+ * @return      TRUE if the parsing went fine.
+ */
+bool nanocad_parse_command(const char *line) {
+	return parse_command(line);
+}
+
+/**
+ * Parses a nanoCAD formatted file.
+ *
+ * @param  filename Path to the file to be parsed.
+ * @return          TRUE if everything went OK.
+ */
+bool nanocad_parse_file(const char *filename) {
+	return parse_file(filename);
+}
+
+/**
+ * Gets a layer object based on its layer number.
+ * 
+ * @param  num Layer number.
+ * @return     Layer object pointer or NULL if a layer wasn't found.
+ */
+layer_t* nanocad_get_layer(const uint8_t num) {
+	return get_layer(num);
+}
+
+/**
+ * Gets a object from the objects array.
+ *
+ * @param  i Index of the object to be fetched.
+ * @return   The requested object.
+ */
+object_t nanocad_get_object(const size_t i) {
+	return get_object(i);
+}
+
+/**
+ * Retrieves the internal object container for external use.
+ *
+ * @param container Pointer to the internal object container.
+ */
+void nanocad_get_object_container(object_container *container) {
+	*container = objects;
+}
+
+/**
+ * Retrieves the internal dimension container for external use.
+ * 
+ * @param container Pointer to the internal dimension container.
+ */
+void nanocad_get_dimension_container(dimension_container *container) {
+	*container = dimensions;
+}
+
+/**
+ * Prints some debug information about a variable or layer.
+ * Warning: This function alters the contents of "*thing".
+ * 
+ * @param  thing Thing to be inspected in string form.
+ * @return       TRUE if the inspecting was successful.
+ */
+bool nanocad_inspect(char *thing) {
+	return inspect(thing);
 }
 
 /**
@@ -1382,24 +1459,6 @@ bool parse_file(const char *filename) {
 	free(line);
 
 	return true;
-}
-
-/**
- * Retrieves the internal object container for external use.
- *
- * @param container Pointer to the internal object container.
- */
-void get_object_container(object_container *container) {
-	*container = objects;
-}
-
-/**
- * Retrieves the internal dimension container for external use.
- * 
- * @param container Pointer to the internal dimension container.
- */
-void get_dimension_container(dimension_container *container) {
-	*container = dimensions;
 }
 
 /**

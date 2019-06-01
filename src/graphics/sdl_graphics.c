@@ -125,8 +125,8 @@ void graphics_render() {
 	int ret = 0;
 	
 	// Get the containers from the engine.
-	get_object_container(&objects);
-	get_dimension_container(&dimensions);
+	nanocad_get_object_container(&objects);
+	nanocad_get_dimension_container(&dimensions);
 
 	// Loop through each object and render it.
 	ret = 0;
@@ -181,11 +181,11 @@ int draw_line(const coord_t start, const coord_t end, const uint8_t layer_num) {
 	int y2 = origin.y - end.y;
 	
 	// Get the line's layer.
-	layer_t *layer = get_layer(layer_num);
+	layer_t *layer = nanocad_get_layer(layer_num);
 	if (layer == NULL) {
 		printf("Warning: Invalid layer '%d' to be rendered, falling back to "
 			   "layer 0.\n", layer_num);
-		layer = get_layer(0);
+		layer = nanocad_get_layer(0);
 	}
 	
 	SDL_SetRenderDrawColor(renderer, layer->color.r, layer->color.g,
@@ -212,11 +212,11 @@ int draw_text(const char *text, const coord_t pos, const double angle,
 	int y1 = origin.y - pos.y;
 	
 	// Get the line's layer.
-	layer_t *layer = get_layer(layer_num);
+	layer_t *layer = nanocad_get_layer(layer_num);
 	if (layer == NULL) {
 		printf("Warning: Invalid layer '%d' to be rendered, falling back to "
 			   "layer 0.\n", layer_num);
-		layer = get_layer(0);
+		layer = nanocad_get_layer(0);
 	}
 	
 	// Create the text's surface.
@@ -299,11 +299,11 @@ int draw_dimension(const coord_t start, const coord_t end,
 	}
 	
 	// Get the line's layer.
-	layer_t *layer = get_layer(layer_num);
+	layer_t *layer = nanocad_get_layer(layer_num);
 	if (layer == NULL) {
 		printf("Warning: Invalid layer '%d' to be rendered, falling back to "
 			   "layer 0.\n", layer_num);
-		layer = get_layer(0);
+		layer = nanocad_get_layer(0);
 	}
 	
 	// Set the layer color.

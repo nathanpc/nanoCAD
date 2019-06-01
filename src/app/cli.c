@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
 	}
 
 	// Parse the file.
-	if (!parse_file(argv[1])) {
+	if (!nanocad_parse_file(argv[1])) {
 		return EXIT_FAILURE;
 	}
 	
