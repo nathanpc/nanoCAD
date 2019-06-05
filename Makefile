@@ -24,7 +24,9 @@ memcheck: $(PROJECT)
 	cat valgrind.log
 
 clean:
-	$(RM) -r src/*.o
+	$(RM) -r src/app/*.o
+	$(RM) -r src/engine/*.o
+	$(RM) -r src/graphics/*.o
 	$(RM) $(PROJECT)
 	$(RM) valgrind.log
 
