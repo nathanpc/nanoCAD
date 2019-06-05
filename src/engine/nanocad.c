@@ -685,7 +685,7 @@ bool create_dimension(const int argc, char **argv, const bool is_offset) {
 		coord_t delta;
 		
 		// Get offset distance.
-		long offset = 50;
+		long offset = to_base_unit(argv[3]);
 		
 		// Make sure all dimension lines are going from left to right
 		// and top to bottom.
