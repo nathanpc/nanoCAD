@@ -2,9 +2,9 @@ PROJECT = nanocad
 CC = clang
 RM = rm -f
 GDB = gdb
-CFLAGS = -Wall -std=gnu99 $(shell sdl2-config --cflags)
-LDFLAGS = -lm -lreadline $(shell sdl2-config --libs) -lSDL2_ttf
-OBJECTS = src/app/cli.o src/engine/nanocad.o src/graphics/sdl_graphics.o
+CFLAGS = -Wall -std=c89 -Ilib/c-vector $(shell sdl2-config --cflags)
+LDFLAGS = -lm $(shell sdl2-config --libs) -lSDL2_ttf
+OBJECTS = test/example.o src/engine/layers.o
 
 all: $(PROJECT)
 
@@ -27,6 +27,7 @@ clean:
 	$(RM) -r src/app/*.o
 	$(RM) -r src/engine/*.o
 	$(RM) -r src/graphics/*.o
+	$(RM) -r test/*.o
 	$(RM) $(PROJECT)
 	$(RM) valgrind.log
 
