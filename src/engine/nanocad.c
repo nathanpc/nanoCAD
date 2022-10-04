@@ -1427,7 +1427,7 @@ bool parse_file(const char *filename) {
 	}
 
 	// Go through each line.
-	char *line;
+	char *line = NULL;
 	size_t len = 0;
 	ssize_t read;
 	unsigned int linenum = 1;
