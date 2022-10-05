@@ -1,0 +1,11 @@
+import glob
+from pathlib import Path
+
+# Customize the environment for building the programs with the static libraries.
+env = DefaultEnvironment().Clone()
+env.Append(LIBPATH='../engine')
+env.Append(LIBS='engine')
+
+# Build up the test programs.
+for file in glob.glob('*.c'):
+	env.Program(Path(file).stem, file)

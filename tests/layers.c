@@ -6,7 +6,7 @@
  */
 
 #include <stdio.h>
-#include "../src/engine/engine.h"
+#include "../engine/engine.h"
 
 /**
  * Program's main entry point.

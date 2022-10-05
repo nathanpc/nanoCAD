@@ -1,0 +1,6 @@
+# Customize the environment for building the library.
+env = DefaultEnvironment().Clone()
+env.Append(CCFLAGS='-DLIBRARY_EXPORTS ')
+
+# Build up the engine library.
+env.StaticLibrary('engine', Glob('*.c'))

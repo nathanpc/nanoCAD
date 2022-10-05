@@ -8,6 +8,10 @@
 #ifndef _ENGINE_LAYERS_H
 #define _ENGINE_LAYERS_H
 
+#ifdef __cplusplus
+extern “C” {
+#endif
+
 #include <stdint.h>
 #include <stdlib.h>
 #include <cvector.h>
@@ -30,17 +34,21 @@ typedef struct {
 } layer_t;
 
 /* Constructor and Destructor */
-engine_error_t layer_new(layer_t *layer);
-engine_error_t layer_free(layer_t *layer);
+SHARED_API engine_error_t layer_new(layer_t *layer);
+SHARED_API engine_error_t layer_free(layer_t *layer);
 
 /* Setters */
-engine_error_t layer_set_id(layer_t *layer, uint8_t id);
-engine_error_t layer_set_name(layer_t *layer, const char *name);
-engine_error_t layer_set_color(layer_t *layer, rgba_color_t color);
-engine_error_t layer_set_color_rgba(layer_t *layer, uint8_t red, uint8_t green,
-	uint8_t blue, uint8_t alpha);
+SHARED_API engine_error_t layer_set_id(layer_t *layer, uint8_t id);
+SHARED_API engine_error_t layer_set_name(layer_t *layer, const char *name);
+SHARED_API engine_error_t layer_set_color(layer_t *layer, rgba_color_t color);
+SHARED_API engine_error_t layer_set_color_rgba(layer_t *layer, uint8_t red,
+	uint8_t green, uint8_t blue, uint8_t alpha);
 
 /* Debugging */
 void layer_debug_print(const layer_t *layer);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /* _ENGINE_LAYERS_H */
