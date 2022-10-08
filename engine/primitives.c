@@ -11,7 +11,7 @@
 /**
  * Initializes a brand new primitive object structure.
  * 
- * @param obj primitive object structure to be initialized.
+ * @param obj Primitive object structure to be initialized.
  * @return ENGINE_OK if the operation was successful.
  */
 engine_error_t primitive_new(primitive_obj_t *obj) {
@@ -113,5 +113,5 @@ void primitive_debug_print(const primitive_obj_t *obj) {
 
 /*		"        \"r\": %u,\n" */
 
-	printf("    ]\n}\n");
+	printf("    ]\n}");
 }

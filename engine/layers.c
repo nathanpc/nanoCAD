@@ -166,7 +166,7 @@ void layer_debug_print(const layer_t *layer) {
 		"        \"b\": %u,\n"
 		"        \"alpha\": %u\n"
 		"    }\n"
-		"}\n",
+		"}",
 		layer->id, layer->name, layer->color.r, layer->color.g, layer->color.b,
 		layer->color.alpha);
 }

@@ -29,6 +29,7 @@ int main(int argc, char **argv) {
 	layer_set_name(&layer, "Test Layer");
 	layer_set_color_rgba(&layer, 100, 150, 200, 255);
 	layer_debug_print(&layer);
+	printf("\n");
 
 	/* Clean up. */
 	layer_free(&layer);
