@@ -7,5 +7,8 @@ env.Append(LIBPATH='../engine')
 env.Append(LIBS='engine')
 
 # Build up the test programs.
-for file in glob.glob('*.c'):
-	env.Program(Path(file).stem, file)
+#for file in glob.glob('*.c'):
+#	env.Program(Path(file).stem, file)
+
+env.Program('layers', 'layers.c')
+env.Program('example', 'example.c')
