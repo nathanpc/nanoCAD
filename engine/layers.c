@@ -115,6 +115,41 @@ engine_error_t layer_set_color_rgba(layer_t *layer, uint8_t red, uint8_t green,
 }
 
 /**
+ * Creates an RGBA color structure from RGB values assuming a solid color.
+ * 
+ * @param red   Red color value.
+ * @param green Green color value.
+ * @param blue  Blue color value.
+ *
+ * @return Pre-populated RGBA color structure.
+ */
+rgba_color_t color_create(uint8_t red, uint8_t green, uint8_t blue) {
+	return color_create_rgba(red, green, blue, 255);
+}
+
+/**
+ * Creates an RGBA color structure from RGB values assuming a solid color.
+ * 
+ * @param red   Red color value.
+ * @param green Green color value.
+ * @param blue  Blue color value.
+ * @param alpha Alpha value.
+ *
+ * @return Pre-populated RGBA color structure.
+ */
+rgba_color_t color_create_rgba(uint8_t red, uint8_t green, uint8_t blue,
+		uint8_t alpha) {
+	rgba_color_t color;
+
+	color.r = red;
+	color.g = green;
+	color.b = blue;
+	color.alpha = alpha;
+
+	return color;
+}
+
+/**
  * Dumps the contents of a layer to STDOUT as a JSON object.
  * 
  * @param layer Layer to be inspected.

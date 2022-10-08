@@ -37,6 +37,11 @@ typedef struct {
 SHARED_API engine_error_t layer_new(layer_t *layer);
 SHARED_API engine_error_t layer_free(layer_t *layer);
 
+/* Convenience Functions for Colors */
+SHARED_API rgba_color_t color_create(uint8_t red, uint8_t green, uint8_t blue);
+SHARED_API rgba_color_t color_create_rgba(uint8_t red, uint8_t green,
+	uint8_t blue, uint8_t alpha);
+
 /* Setters */
 SHARED_API engine_error_t layer_set_id(layer_t *layer, uint8_t id);
 SHARED_API engine_error_t layer_set_name(layer_t *layer, const char *name);
@@ -45,7 +50,7 @@ SHARED_API engine_error_t layer_set_color_rgba(layer_t *layer, uint8_t red,
 	uint8_t green, uint8_t blue, uint8_t alpha);
 
 /* Debugging */
-void layer_debug_print(const layer_t *layer);
+SHARED_API void layer_debug_print(const layer_t *layer);
 
 #ifdef __cplusplus
 }
