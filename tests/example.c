@@ -1,6 +1,6 @@
 /**
- * test/layers.c
- * A very simple example of how to use layers in the CAD engine.
+ * test/example.c
+ * A very simple, but complete, example of how to use this CAD engine.
  *
  * @author Nathan Campos <nathan@innoveworkshop.com>
  */
