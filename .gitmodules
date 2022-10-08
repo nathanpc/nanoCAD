@@ -1,3 +1,6 @@
 [submodule "lib/c-vector"]
 	path = lib/c-vector
 	url = https://github.com/eteran/c-vector.git
+[submodule "lisp"]
+	path = lisp
+	url = https://github.com/nathanpc/bamboo-lisp.git
