@@ -9,8 +9,11 @@
 #define _ENGINE_COMMONS_H
 
 #ifdef __cplusplus
-extern “C” {
+extern "C" {
 #endif
+
+#include "../lib/c-vector/cvector.h"
+#include "../lib/c-vector/cvector_utils.h"
 
 /* Library export prefix definition. */
 #ifdef LIBRARY_EXPORTS
@@ -26,6 +29,9 @@ extern “C” {
 		#define SHARED_API extern
 	#endif  /* _WIN32 */
 #endif  /* ENGINE_EXPORTS */
+
+/* CVector utility functions. */
+#define cvector_last(vec) (vec[cvector_size(vec) - 1])
 
 /* Internal engine error codes. */
 typedef enum {

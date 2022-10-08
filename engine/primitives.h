@@ -9,12 +9,11 @@
 #define _ENGINE_PRIMITIVES_H
 
 #ifdef __cplusplus
-extern “C” {
+extern "C" {
 #endif
 
 #include <stdint.h>
 #include <stdlib.h>
-#include <cvector.h>
 
 #include "commons.h"
 
