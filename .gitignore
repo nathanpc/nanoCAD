@@ -61,3 +61,6 @@ dkms.conf
 # When configure fails, SCons outputs these
 config.log
 .sconf_temp
+
+# Misc.
+.DS_Store
