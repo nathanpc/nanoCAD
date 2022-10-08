@@ -1,0 +1,9 @@
+# Customize the environment for building the library.
+env = DefaultEnvironment().Clone()
+env.Append(CCFLAGS='-DLIBRARY_EXPORTS ')
+env.ParseConfig('sdl2-config --cflags')
+env.ParseConfig('sdl2-config --libs')
+env.Append(LIBS='SDL2_ttf')
+
+# Build up the graphics library.
+env.StaticLibrary('graphics', Glob('*.c'))
