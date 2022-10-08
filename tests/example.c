@@ -18,20 +18,26 @@
  */
 int main(int argc, char **argv) {
 	engine_error_t err;
-	layer_t layer;
+	instance_t instance;
+	layer_t *layer;
 
 	/* Initialize some defaults. */
 	err = ENGINE_OK;
 
+	/* Initialize the engine instance. */
+	engine_instance_init(&instance);
+
 	/* Initialize a new layer. */
-	layer_new(&layer);
-	layer_set_id(&layer, 1);
-	layer_set_name(&layer, "Test Layer");
-	layer_set_color_rgba(&layer, 100, 150, 200, 255);
-	layer_debug_print(&layer);
+	layer = instance_layer_create(&instance);
+	layer_set_name(layer, "Test Layer");
+	layer_set_color_rgba(layer, 100, 150, 200, 255);
+
+	/* Dump the engine instance information. */
+	engine_instance_debug_print(&instance);
+	printf("\n");
 
 	/* Clean up. */
-	layer_free(&layer);
+	engine_instance_init(&instance);
 
 	return err;
 }
