@@ -33,6 +33,7 @@ typedef struct {
 
 /* Primitive object structure. */
 typedef struct {
+	long id;
 	primitive_type_t type;
 	uint8_t layer;
 	cvector_vector_type(coord_t) coords;
@@ -46,14 +47,17 @@ SHARED_API engine_error_t primitive_free(primitive_obj_t *obj);
 SHARED_API coord_t coord_create(long x, long y);
 
 /* Setters */
+SHARED_API engine_error_t primitive_set_id(primitive_obj_t *obj,
+										   long id);
 SHARED_API engine_error_t primitive_set_type(primitive_obj_t *obj,
-	primitive_type_t type);
+											 primitive_type_t type);
 SHARED_API engine_error_t primitive_set_layer(primitive_obj_t *obj,
-	uint8_t layer);
+											  uint8_t layer);
 SHARED_API engine_error_t primitive_add_coord(primitive_obj_t *obj,
-	coord_t coord);
+											  coord_t coord);
 
 /* Debugging */
+SHARED_API void coord_debug_print(coord_t coord);
 SHARED_API void primitive_debug_print(const primitive_obj_t *obj);
 
 #ifdef __cplusplus

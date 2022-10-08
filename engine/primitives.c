@@ -7,6 +7,7 @@
 
 #include "primitives.h"
 #include <stdio.h>
+#include "commons.h"
 
 /**
  * Initializes a brand new primitive object structure.
@@ -59,6 +60,19 @@ coord_t coord_create(long x, long y) {
 }
 
 /**
+ * Sets the primitive object ID.
+ *
+ * @param obj Primitive object to be altered.
+ * @param id  New ID of the object.
+ *
+ * @return ENGINE_OK if the operation was successful.
+ */
+engine_error_t primitive_set_id(primitive_obj_t *obj, long id) {
+	obj->id = id;
+	return ENGINE_OK;
+}
+
+/**
  * Sets the primitive object type.
  * 
  * @param obj  Primitive object to be altered.
@@ -98,6 +112,20 @@ engine_error_t primitive_add_coord(primitive_obj_t *obj, coord_t coord) {
 }
 
 /**
+ * Dumps the contents of a coordinate object to STDOUT as a JSON object.
+ *
+ * @param coord Coordinate object to be inspected.
+ */
+void coord_debug_print(coord_t coord) {
+	printf(
+		"{\n"
+		"    \"x\": %ld,\n"
+		"    \"y\": %ld\n"
+		"}",
+		coord.x, coord.y);
+}
+
+/**
  * Dumps the contents of a primitive object to STDOUT as a JSON object.
  * 
  * @param obj Primitive object to be inspected.
@@ -106,12 +134,27 @@ void primitive_debug_print(const primitive_obj_t *obj) {
 	/* I know this looks absolutely horrible. Stop staring at it! */
 	printf(
 		"{\n"
+		"    \"id\": %ld,\n"
 		"    \"type\": %u,\n"
 		"    \"layer\": %u,\n"
 		"    \"coords\": [\n",
-		obj->type, obj->layer);
+		obj->id, obj->type, obj->layer);
 
-/*		"        \"r\": %u,\n" */
+	if (obj->coords) {
+		coord_t *it;
+
+		for (it = cvector_begin(obj->coords); it != cvector_end(obj->coords); ++it) {
+			/* Dump the coordinate information. */
+			printf("        [ %ld, %ld ]", it->x, it->y);
+
+			/* Check if we still have layers to dump. */
+			if ((it + 1) != cvector_end(obj->coords)) {
+				printf(",\n");
+			} else {
+				printf("\n");
+			}
+		}
+	}
 
 	printf("    ]\n}");
 }
