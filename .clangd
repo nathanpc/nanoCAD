@@ -1,0 +1,4 @@
+# Ensures we have proper code completion for this project.
+
+CompileFlags:
+  Add: [--language=c, -std=c89, -Wall]
