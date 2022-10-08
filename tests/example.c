@@ -20,6 +20,7 @@ int main(int argc, char **argv) {
 	engine_error_t err;
 	instance_t instance;
 	layer_t *layer;
+	primitive_obj_t *obj;
 
 	/* Initialize some defaults. */
 	err = ENGINE_OK;
@@ -32,12 +33,29 @@ int main(int argc, char **argv) {
 	layer_set_name(layer, "Test Layer");
 	layer_set_color_rgba(layer, 100, 150, 200, 255);
 
+	/* Create a line. */
+	obj = instance_object_create(&instance, PRIMITIVE_TYPE_LINE);
+	primitive_add_coord(obj, coord_create(0, 0));
+	primitive_add_coord(obj, coord_create(10, 0));
+	primitive_add_coord(obj, coord_create(10, 10));
+	primitive_add_coord(obj, coord_create(20, 10));
+
+	/* Create a rectangle. */
+	obj = instance_object_create(&instance, PRIMITIVE_TYPE_RECT);
+	primitive_add_coord(obj, coord_create(-10, -10));
+	primitive_add_coord(obj, coord_create(0, 0));
+
+	/* Create a circle. */
+	obj = instance_object_create(&instance, PRIMITIVE_TYPE_CIRCLE);
+	primitive_add_coord(obj, coord_create(-10, 10));
+	primitive_add_coord(obj, coord_create(0, 0));
+
 	/* Dump the engine instance information. */
 	engine_instance_debug_print(&instance);
 	printf("\n");
 
 	/* Clean up. */
-	engine_instance_init(&instance);
+	engine_instance_free(&instance);
 
 	return err;
 }

@@ -11,4 +11,5 @@ env.Append(LIBS='engine')
 #	env.Program(Path(file).stem, file)
 
 env.Program('layers', 'layers.c')
+env.Program('primitives', 'primitives.c')
 env.Program('example', 'example.c')
