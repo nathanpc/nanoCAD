@@ -26,9 +26,9 @@ extern "C" {
 	#ifdef _WIN32
 		#define SHARED_API __declspec(dllimport)
 	#else
-		#define SHARED_API extern
+		#define SHARED_API
 	#endif  /* _WIN32 */
-#endif  /* ENGINE_EXPORTS */
+#endif  /* LIBRARY_EXPORTS */
 
 /* CVector utility functions. */
 #define cvector_last(vec) (vec[cvector_size(vec) - 1])
