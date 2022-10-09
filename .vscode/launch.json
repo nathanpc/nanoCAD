@@ -8,7 +8,7 @@
 			"name": "Example",
 			"type": "cppdbg",
 			"request": "launch",
-			"program": "${workspaceFolder}/build/tests/example",
+			"program": "${workspaceFolder}/build/cli/nanocad",
 			"args": [],
 			"environment": [],
 			"cwd": "${workspaceFolder}",

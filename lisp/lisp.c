@@ -9,14 +9,18 @@
 #include <stdio.h>
 
 #include "fileutils.h"
+#include "general_builtins.h"
+#include "cad_builtins.h"
 
 /**
  * Initializes the Lisp environment.
  *
- * @param env Lisp interpreter environment to be initialized.
+ * @param env      Lisp interpreter environment to be initialized.
+ * @param instance CAD instance for us to interact with.
+ *
  * @return BAMBOO_OK if everything went fine.
  */
-bamboo_error_t lisp_env_init(env_t *env) {
+bamboo_error_t lisp_env_init(env_t *env, instance_t *instance) {
 	bamboo_error_t err;
 
 	/* Initialize the lisp interpreter. */
@@ -24,7 +28,9 @@ bamboo_error_t lisp_env_init(env_t *env) {
 	IF_BAMBOO_ERROR(err)
 		return err;
 
-	/* TODO: Add our own built-ins. */
+	/* Add our built-ins to the environment. */
+	builtins_populate_general(env);
+	builtins_setup_cad(env, instance);
 
 	return err;
 }

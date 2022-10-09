@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <sys/_pthread/_pthread_t.h>
 #ifdef _WIN32
 #include <fcntl.h>
 #include <io.h>
@@ -20,6 +21,10 @@
 #include <unistd.h>
 #include <getopt.h>
 #endif /* __linux__ || __APPLE__ || __unix__ */
+#include <pthread.h>
+
+#include "../engine/engine.h"
+#include "../graphics/sdl_graphics.h"
 #include "../lisp/lisp.h"
 #include "input.h"
 
@@ -27,17 +32,20 @@
 #define REPL_INPUT_MAX_LEN 512
 
 /* Private Variables */
+static instance_t cad_instance;
 static env_t repl_env;
 static char repl_input[REPL_INPUT_MAX_LEN + 1];
 static bool env_initialized;
+static pthread_mutex_t engine_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /* Private Methods */
+void *graphics_subsystem(void *ptr);
 void enable_unicode(void);
 void usage(const char *pname, int retval);
 void parse_args(int argc, char **argv);
 bamboo_error_t init_env(void);
 bamboo_error_t destroy_env(void);
-void repl(void);
+void *repl(void *ptr);
 void load_include(const char *fname, bool terminate);
 void run_source(const char *fname);
 void cleanup(void);
@@ -51,11 +59,16 @@ void cleanup(void);
  * @return 0 if everything went fine.
  */
 int main(int argc, char *argv[]) {
-	bamboo_error_t err;
+	bamboo_error_t bamboo_err;
+	engine_error_t engine_err;
+	pthread_t repl_thread;
+	int ret_trepl;
 
 	/* Setup some flags. */
-	err = BAMBOO_OK;
+	bamboo_err = BAMBOO_OK;
+	engine_err = ENGINE_OK;
 	env_initialized = false;
+	ret_trepl = 0;
 
 	/* Make sure we clean things up. */
 	atexit(cleanup);
@@ -66,17 +79,53 @@ int main(int argc, char *argv[]) {
 
 	/* Initialize the Lisp environment. */
 	if (!env_initialized) {
-		err = init_env();
-		IF_BAMBOO_ERROR(err)
+		bamboo_err = init_env();
+		IF_BAMBOO_ERROR(bamboo_err)
 			goto quit;
 	}
 
-	/* Start the REPL. */
-	repl();
+	/* Initialize the CAD engine instance. */
+	engine_err = engine_instance_init(&cad_instance);
+	if (engine_err != ENGINE_OK) {
+		fprintf(stderr, "CAD engine failed to initialize with code %d\n", engine_err);
+		goto quit;
+	}
 
+	/* Create the thread for the REPL. */
+	ret_trepl = pthread_create(&repl_thread, NULL, repl, NULL);
+	if (ret_trepl) {
+		fprintf(stderr, "Failed to create the REPL thread. (%d)\n", ret_trepl);
+		goto quit;
+	}
+
+	/* Start the graphics subsystem. */
+	graphics_subsystem(NULL);
+
+	/* Join the threads and clean things up. */
+	pthread_join(repl_thread, NULL);
 quit:
 	cleanup();
-	return err;
+	return bamboo_err;
+}
+
+/**
+ * Function that will deal with the graphics subsystem in a different thread.
+ *
+ * @param ptr Parameter passed to the thread upon creation.
+ * @return Thread return value.
+ */
+void *graphics_subsystem(void *ptr) {
+	int err = 0;
+
+	/* Initialize the graphics. */
+	if ((err = graphics_sdl_init(&cad_instance, 600, 450))) {
+		/* Run the graphics event loop. */
+		graphics_sdl_event_loop();
+	} else {
+		fprintf(stderr, "Graphics subsystem failed to initialize with code: %d\n", err);
+	}
+
+	return NULL;
 }
 
 /**
@@ -88,7 +137,7 @@ bamboo_error_t init_env(void) {
 	bamboo_error_t err;
 
 	/* Initialize the interpreter. */
-	err = lisp_env_init(&repl_env);
+	err = lisp_env_init(&repl_env, &cad_instance);
 	IF_BAMBOO_ERROR(err)
 		return err;
 
@@ -123,14 +172,22 @@ bamboo_error_t destroy_env(void) {
  * Performs some basic cleanup before the program exits.
  */
 void cleanup(void) {
+	/* Clean resources from the Lisp interpreter. */
 	repl_destroy();
 	destroy_env();
+
+	/* Clean resources from the CAD engine. */
+	graphics_sdl_clean();
+	engine_instance_free(&cad_instance);
 }
 
 /**
  * Creates a classic Read-Eval-Print-Loop.
+ *
+ * @param ptr Parameter passed to the thread upon creation.
+ * @return Thread return value.
  */
-void repl(void) {
+void *repl(void *ptr) {
 	bamboo_error_t err;
 	int retval = 0;
 

@@ -1,4 +1,4 @@
 # Ensures we have proper code completion for this project.
 
 CompileFlags:
-  Add: [--language=c, -std=c89, -Wall]
+  Add: [--language=c, -std=c89, -Wall, -I/opt/local/include/SDL2]
