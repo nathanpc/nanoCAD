@@ -13,6 +13,10 @@ if int(debug):
 # Build up the engine and graphics library.
 SConscript('engine/SConscript', variant_dir='build/engine', duplicate=False)
 SConscript('graphics/SConscript', variant_dir='build/graphics', duplicate=False)
+SConscript('lisp/SConscript', variant_dir='build/lisp', duplicate=False)
 
-# Build up the engine library.
+# Build up the engine test programs.
 SConscript('tests/SConscript', variant_dir='build/tests', duplicate=False)
+
+# Build up the actual program.
+SConscript('cli/SConscript', variant_dir='build/cli', duplicate=False)

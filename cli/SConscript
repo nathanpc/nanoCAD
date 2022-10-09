@@ -1,0 +1,11 @@
+# Customize the environment for building the programs with the static libraries.
+env = DefaultEnvironment().Clone()
+env.Append(CCFLAGS='-DLIBRARY_EXPORTS ')
+env.ParseConfig('sdl2-config --cflags')
+env.ParseConfig('sdl2-config --libs')
+env.Append(LIBS='SDL2_ttf')
+env.Append(LIBPATH=['../engine', '../graphics', '../lisp'])
+env.Append(LIBS=['engine', 'graphics', 'lisp'])
+
+# Build up the program.
+env.Program('nanocad', Glob('*.c'))
