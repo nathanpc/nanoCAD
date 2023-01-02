@@ -348,7 +348,7 @@ void parse_args(int argc, char **argv) {
 				usage(argv[0], EXIT_FAILURE);
 				break;
 			case _T('?'):
-				_tprintf("Unknown option: %c" LINEBREAK, (char)optopt);
+				printf("Unknown option: %c" LINEBREAK, (char)optopt);
 				/* Fallthrough... */
 			default:
 				usage(argv[0], EXIT_FAILURE);
