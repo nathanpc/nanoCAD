@@ -3,7 +3,7 @@ import os
 # Define the base environment.
 def_env = DefaultEnvironment()
 def_env['ENV'] = {'PATH': os.environ['PATH']}
-def_env['CCFLAGS'] = '-Wall -std=c89 -Ilib/c-vector '
+def_env['CCFLAGS'] = '-Wall -std=gnu89 -Ilib/c-vector '
 
 # Check if we are building with debug symbols.
 debug = ARGUMENTS.get('debug', 0)
