@@ -77,7 +77,6 @@ bamboo_error_t builtin_cad_line(atom_t args, atom_t *result) {
 
 	/* Dump the engine instance information. */
 	engine_instance_debug_print(cad_instance);
-	printf("\n");
 
 	/* Check if we have enough arguments to build a line. */
 	if (numargs < 2)
@@ -86,6 +85,12 @@ bamboo_error_t builtin_cad_line(atom_t args, atom_t *result) {
 	return BAMBOO_OK;
 }
 
+/**
+ * Converts a Lisp pair into an engine coordinate.
+ *
+ * @param  pair Lisp pair to be converted.
+ * @return      Converted coordinate.
+ */
 coord_t coord_from_pair(atom_t pair) {
 	coord_t coord;
 

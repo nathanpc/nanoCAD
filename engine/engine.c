@@ -122,6 +122,7 @@ primitive_obj_t *instance_object_create(instance_t *instance,
  * @param instance Engine instance structure to be inspected.
  */
 void engine_instance_debug_print(instance_t *instance) {
+#ifdef DEBUG
 	printf("{\n");
 
 	/* Go through the layers. */
@@ -162,6 +163,7 @@ void engine_instance_debug_print(instance_t *instance) {
 		}
 	}
 	printf("    ]\n}");
+#endif
 }
 
 /**
