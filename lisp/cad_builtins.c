@@ -58,6 +58,13 @@ bamboo_error_t builtin_cad_line(atom_t args, atom_t *result) {
 
 	/* Go through arguments. */
 	while (!nilp(args)) {
+		/* Check if we have a pair for the points. */
+		if (car(args).type != ATOM_TYPE_PAIR) {
+			*result = nil;
+			return bamboo_error(BAMBOO_ERROR_WRONG_TYPE,
+								"Point argument must be a pair.");
+		}
+
 		/* Create the line object if needed and add the next coordinate. */
 		if (obj == NULL)
 			obj = instance_object_create(cad_instance, PRIMITIVE_TYPE_LINE);
