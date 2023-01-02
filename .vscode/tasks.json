@@ -16,7 +16,7 @@
 			"command": "scons",
 			"type": "shell",
 			"group": "build",
-			"problemMatcher": "$msCompile" // Important to catch the status
+			"problemMatcher": "$gcc" // Important to catch the status
 		},
 		{
 			"label": "Debug Build",
@@ -29,7 +29,7 @@
 				"kind": "build",
 				"isDefault": true
 			},
-			"problemMatcher": "$msCompile", // Important to catch the status
+			"problemMatcher": "$gcc", // Important to catch the status
 			"dependsOrder": "sequence",
 			"dependsOn": [
 				"Clean"
